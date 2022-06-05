@@ -1,0 +1,18 @@
+{
+  "extends": "./node_modules/@tsconfig/node16-strictest/tsconfig.json",
+  "compilerOptions": {
+    "incremental": true,
+    "tsBuildInfoFile": "./.tsbuildinfo.json",
+    "module": "node16",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "declarationDir": "./types",
+    "stripInternal": true
+  },
+  "files": [
+    "./src/main.ts",
+    "./src/config.ts"
+  ]
+}
