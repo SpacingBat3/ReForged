@@ -23,7 +23,6 @@
   "devDependencies": {
     "@electron-forge/maker-base": "^6.0.0-beta.63",
     "@tsconfig/node16-strictest": "^1.0.1",
-    "@types/sharp": "^0.30.2",
     "@types/source-map-support": "^0.5.4",
     "typescript": "^4.7.3"
   },
