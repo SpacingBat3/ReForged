@@ -1,0 +1,6 @@
+node_modules/
+dist/
+types/
+package-lock.json
+yarn.lock
+.tsbuildinfo.json
