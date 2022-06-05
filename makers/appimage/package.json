@@ -1,6 +1,6 @@
 {
   "name": "@reforged/maker-appimage",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An AppImage maker implementation for the Electron Forge.",
   "main": "dist/main.js",
   "scripts": {
@@ -25,11 +25,11 @@
     "@tsconfig/node16-strictest": "^1.0.1",
     "@types/sharp": "^0.30.2",
     "@types/source-map-support": "^0.5.4",
-    "source-map-support": "^0.5.21",
     "typescript": "^4.7.3"
   },
   "dependencies": {
-    "node-fetch": "^3.2.5"
+    "node-fetch": "^3.2.5",
+    "source-map-support": "^0.5.21"
   },
   "types": "./types/",
   "publishConfig": {
