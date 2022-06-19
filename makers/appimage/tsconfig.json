@@ -12,7 +12,6 @@
     "stripInternal": true
   },
   "files": [
-    "./src/main.ts",
-    "./src/config.ts"
+    "./src/main.ts"
   ]
 }

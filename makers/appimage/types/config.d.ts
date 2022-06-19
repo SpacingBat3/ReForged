@@ -13,7 +13,12 @@ interface MakerAppImageConfigOptions {
     /** List of dekstop file categories to append. */
     categories?: (
         FreeDesktopCategories["main"] | FreeDesktopCategories["additional"]
-    )[]
+    )[],
+    /**
+     * GitHub Release of `AppImage/AppImageKit` from which this maker should
+     * get the runtime and AppRun executable. By default it is `13`.
+     */
+    AppImageKitRelease: number | "continuous"
 }
 
 /** AppImage maker configuration options */

@@ -1,6 +1,6 @@
 import MakerBase, { MakerOptions } from "@electron-forge/maker-base";
 import EventEmitter from "events";
-import type { MakerAppImageConfig } from "./config.js";
+import type { MakerAppImageConfig } from "../types/config";
 import { createHash } from "crypto";
 import srcmap from "source-map-support";
 
@@ -8,9 +8,6 @@ srcmap.install();
 
 type AppImageArch = "x86_64"|"aarch64"|"armhf"|"i686";
 type ForgeArch = "x64" | "arm64" | "armv7l" | "ia32" | "mips64el" | "universal";
-
-/** A currently supported AppImage version specification. */
-const currentTag = 13;
 
 interface MakerMeta extends MakerOptions {
     targetArch: ForgeArch;
@@ -123,6 +120,8 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
             icon = config?.options?.icon ?? null,
             /** Resolved path to AppImage output file. */
             outFile = join(makeDir, this.name, targetArch, `${productName}-${packageJSON.version}-${targetArch}.AppImage`),
+            /** A currently used AppImageKit release. */
+            currentTag = config.options?.AppImageKitRelease ?? 13,
             /**
              * Detailed information about the source files.
              * 
@@ -312,7 +311,7 @@ async function joinFiles(...filesAndBuffers:(string|Buffer)[]) {
 function mapArch(arch:ForgeArch):AppImageArch {
     switch(arch) {
     /*________________________________________________________________________*/
-    /*    [Forge]    :                       [AppImage]                        */
+    /*    [Forge]    :                       [AppImage]                       */
         case "x64"   : return "x86_64";
         case "ia32"  : return "i686";
         case "arm64" : return "aarch64";

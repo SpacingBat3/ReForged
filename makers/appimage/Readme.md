@@ -9,8 +9,9 @@ for them to finish. A part of the [*Reforged*][2] project.
 Please reffer to [Electron Forge documentation][3] if you don't know about
 general Electron Forge configuration.
 
-An example relevant part of Electron Forge's configuration for this *maker* may
-look like this:
+The maker itself should work *out-of-the-box*, althrough it is recommended to
+at least provide the path of the icon and `categories`. An example relevant part
+of Electron Forge's configuration for this *maker* may look like this:
 ```js
 {
     name: "@reforged/maker-appimage",
@@ -25,7 +26,9 @@ look like this:
             // Path to application's icon.
             icon: "/path/to/icon.png",
             // `Categories` in generated `.desktop` file.
-            categories: [ "Utility" ]
+            categories: [ "Utility" ],
+            // GitHub Release of `AppImage/AppImageKit`
+            AppImageKitRelease: 12
         }
     }
 }

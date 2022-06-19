@@ -1,6 +1,9 @@
 node_modules/
 dist/
 types/
+!makers/*/types/
+makers/*/types/*
+!makers/*/types/config.d.ts
 package-lock.json
 yarn.lock
 .tsbuildinfo.json
