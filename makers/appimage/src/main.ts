@@ -103,7 +103,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
             { tmpdir },
             { join, dirname, extname, relative },
             { mkdtempSync, existsSync },
-            { mkdir, writeFile, copyFile, cp, chmod, rm, symlink }
+            { mkdir, writeFile, copyFile, chmod, rm, symlink }
         ] = await Promise.all([
             import("os"),
             import("path"),
@@ -225,7 +225,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
                 .then(() => writeFile(join(directories.bin, name),sources.shell, {mode: 0o755})),
             // Copy Electron app to AppImage directories
             earlyJobs[0]
-                .then(() => {cp(dir, directories.data, {recursive: true});})
+                .then(() => {copyPath(dir, directories.data);})
         ] as const;
         // Wait for early/late jobs to finish
         await(Promise.all([...earlyJobs,...lateJobs]));
@@ -258,6 +258,49 @@ async function generateDesktop(desktopEntry: Record<string,string|null>, actions
             template.push(entry.join('='));
     }
     return template.join('\n');
+}
+
+/**
+ * Asynchroniously copy path from `source` to `destination`, with similar logic
+ * to Unix `cp -R` command.
+ */
+async function copyPath(source:string, destination:string) {
+    async function copyDirRecursively(source:string, destination:string) {
+        const jobs: Array<Promise<void>> = [];
+        const [
+            {copyFile, readdir, lstat, mkdir},
+            {resolve}
+        ] = await Promise.all([
+            import("fs/promises"),
+            import("path")
+        ]);
+        const items = await readdir(source);
+        await mkdir(destination);
+        for(const item of items) {
+            const itemPath = {
+                src: resolve(source, item),
+                dest: resolve(destination, item)
+            }
+            jobs.push(lstat(itemPath.src).then(async(stats) => {
+                if(stats.isDirectory())
+                    await copyDirRecursively(itemPath.src, itemPath.dest);
+                else {
+                    await copyFile(itemPath.src, itemPath.dest);
+                }
+            }));
+        }
+        return void await Promise.all(jobs);
+    }
+    const [fsPromises, {existsSync}] = await Promise.all([import("fs/promises"), import("fs")]);
+    const stats = await fsPromises.lstat(source);
+    const resolvedDestination = destination.endsWith("/") || existsSync(destination) ?
+        await import("path").then(path => path.resolve(destination, path.basename(source))) :
+        destination
+    if(stats.isDirectory()) {
+        return copyDirRecursively(source, resolvedDestination);
+    } else {
+        return fsPromises.copyFile(source, resolvedDestination);
+    }
 }
 
 /**
