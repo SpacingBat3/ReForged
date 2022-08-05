@@ -1,13 +1,18 @@
-import MakerBase, { MakerOptions } from "@electron-forge/maker-base";
-import EventEmitter from "events";
-import type { MakerAppImageConfig } from "../types/config";
-import { createHash } from "crypto";
 import srcmap from "source-map-support";
 
 srcmap.install();
 
+import MakerBase, { MakerOptions } from "@electron-forge/maker-base";
+import EventEmitter from "events";
+import { createHash } from "crypto";
+
+import type { MakerAppImageConfig } from "../types/config";
+import type { Mode } from "fs";
+
 type AppImageArch = "x86_64"|"aarch64"|"armhf"|"i686";
 type ForgeArch = "x64" | "arm64" | "armv7l" | "ia32" | "mips64el" | "universal";
+type ModeFunction = (source:string,destination:string) => Mode|Promise<Mode>;
+
 /** Currently supported release of AppImageKit distributables. */
 const supportedAppImageKit = 13;
 
@@ -103,7 +108,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
     override async make({appName,dir,makeDir,packageJSON,targetArch}: MakerMeta) {
         const [
             { tmpdir },
-            { join, dirname, extname, relative },
+            { join, dirname, extname, relative, basename },
             { mkdtempSync, existsSync },
             { mkdir, writeFile, copyFile, chmod, rm, symlink }
         ] = await Promise.all([
@@ -194,15 +199,24 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
             //icons: join(workDir, 'usr/share/', config.options?.name ?? packageJSON.name),
         }
         const iconPath = icon ? join(workDir, name+extname(icon)) : undefined
+        const defineMode:ModeFunction = async (_source,destination) => {
+            switch (basename(destination)) {
+                case "locales":
+                case "resources":
+                    return 0o644;
+                default:
+                    return 0o755;
+            }
+        }
         /** First-step jobs, which does not depend on any other job than */
         const earlyJobs = [
             // Create further directory tree
-            mkdir(directories.lib, {recursive: true}),
-            mkdir(directories.bin, {recursive: true}),
+            mkdir(directories.lib, {recursive: true, mode: 0o755}),
+            mkdir(directories.bin, {recursive: true, mode: 0o755}),
             // Save `.desktop` to file
             sources.desktop
                 .then(data => writeFile(
-                    join(workDir, productName+'.desktop'), data)
+                    join(workDir, productName+'.desktop'), data, {mode:0o755, encoding: "utf-8"})
                 ),
             // Verify and save `AppRun` to file
             sources.AppRun.data
@@ -229,7 +243,9 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
                 .then(() => writeFile(join(directories.bin, name),sources.shell, {mode: 0o755})),
             // Copy Electron app to AppImage directories
             earlyJobs[0]
-                .then(() => {copyPath(dir, directories.data);})
+                .then(() => {copyPath(dir, directories.data, defineMode);}),
+            // Ensure that root folder has proper file mode
+            chmod(workDir, 0o755)
         ] as const;
         // Wait for early/late jobs to finish
         await(Promise.all([...earlyJobs,...lateJobs]));
@@ -268,7 +284,7 @@ async function generateDesktop(desktopEntry: Record<string,string|null>, actions
  * Asynchroniously copy path from `source` to `destination`, with similar logic
  * to Unix `cp -R` command.
  */
-async function copyPath(source:string, destination:string) {
+async function copyPath(source:string, destination:string, dirmode: Mode|ModeFunction = 0o644) {
     async function copyDirRecursively(source:string, destination:string) {
         const jobs: Array<Promise<void>> = [];
         const [
@@ -279,7 +295,8 @@ async function copyPath(source:string, destination:string) {
             import("path")
         ]);
         const items = await readdir(source);
-        await mkdir(destination);
+        const mode = typeof dirmode === "function" ? dirmode(source,destination) : dirmode;
+        await mkdir(destination, await mode);
         for(const item of items) {
             const itemPath = {
                 src: resolve(source, item),
