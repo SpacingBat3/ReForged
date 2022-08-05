@@ -236,7 +236,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
         // Run `mksquashfs` and wait for it to finish
         await new Promise((resolve, reject) => {
             mkdir(dirname(outFile), {recursive: true}).then(() => {
-                mkSquashFs(workDir, outFile)
+                mkSquashFs(workDir, outFile, "-all-root")
                     .once("close", () => resolve(undefined))
                     .once("error", (error) => reject(error));
             }).catch(error => reject(error));
@@ -295,15 +295,15 @@ async function copyPath(source:string, destination:string) {
         }
         return void await Promise.all(jobs);
     }
-    const [fsPromises, {existsSync}] = await Promise.all([import("fs/promises"), import("fs")]);
-    const stats = await fsPromises.lstat(source);
+    const [{lstat, copyFile}, {existsSync}] = await Promise.all([import("fs/promises"), import("fs")]);
+    const stats = lstat(source);
     const resolvedDestination = destination.endsWith("/") || existsSync(destination) ?
-        await import("path").then(path => path.resolve(destination, path.basename(source))) :
+        import("path").then(path => path.resolve(destination, path.basename(source))) :
         destination
-    if(stats.isDirectory()) {
-        return copyDirRecursively(source, resolvedDestination);
+    if((await stats).isDirectory()) {
+        return copyDirRecursively(source, await resolvedDestination);
     } else {
-        return fsPromises.copyFile(source, resolvedDestination);
+        return copyFile(source, await resolvedDestination);
     }
 }
 
