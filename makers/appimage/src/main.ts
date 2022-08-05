@@ -8,6 +8,8 @@ srcmap.install();
 
 type AppImageArch = "x86_64"|"aarch64"|"armhf"|"i686";
 type ForgeArch = "x64" | "arm64" | "armv7l" | "ia32" | "mips64el" | "universal";
+/** Currently supported release of AppImageKit distributables. */
+const supportedAppImageKit = 13;
 
 interface MakerMeta extends MakerOptions {
     targetArch: ForgeArch;
@@ -121,7 +123,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
             /** Resolved path to AppImage output file. */
             outFile = join(makeDir, this.name, targetArch, `${productName}-${packageJSON.version}-${targetArch}.AppImage`),
             /** A currently used AppImageKit release. */
-            currentTag = config.options?.AppImageKitRelease ?? 13,
+            currentTag = config.options?.AppImageKitRelease ?? supportedAppImageKit,
             /**
              * Detailed information about the source files.
              * 
@@ -206,11 +208,13 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
             sources.AppRun.data
                 .then(data => {
                     const buffer = Buffer.from(data);
-                    const hash = createHash("md5")
-                        .update(buffer)
-                        .digest('hex');
-                    if(hash !== sources.AppRun.md5)
-                        throw new Error("AppRun hash mismatch.");
+                    if(currentTag === supportedAppImageKit) {
+                        const hash = createHash("md5")
+                            .update(buffer)
+                            .digest('hex');
+                        if(hash !== sources.AppRun.md5)
+                            throw new Error("AppRun hash mismatch.");
+                    }
                     writeFile(join(workDir, 'AppRun'), buffer, {mode: 0o755});
                 }),
             // Save icon to file and symlink it as `.DirIcon`
