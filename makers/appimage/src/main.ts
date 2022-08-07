@@ -108,7 +108,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
     override async make({appName,dir,makeDir,packageJSON,targetArch}: MakerMeta) {
         const [
             { tmpdir },
-            { join, dirname, extname, relative, basename },
+            { join, dirname, extname, relative },
             { mkdtempSync, existsSync },
             { mkdir, writeFile, copyFile, chmod, rm, symlink }
         ] = await Promise.all([
@@ -199,15 +199,6 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
             //icons: join(workDir, 'usr/share/', config.options?.name ?? packageJSON.name),
         }
         const iconPath = icon ? join(workDir, name+extname(icon)) : undefined
-        const defineMode:ModeFunction = async (_source,destination) => {
-            switch (basename(destination)) {
-                case "locales":
-                case "resources":
-                    return 0o644;
-                default:
-                    return 0o755;
-            }
-        }
         /** First-step jobs, which does not depend on any other job than */
         const earlyJobs = [
             // Create further directory tree
@@ -243,7 +234,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
                 .then(() => writeFile(join(directories.bin, name),sources.shell, {mode: 0o755})),
             // Copy Electron app to AppImage directories
             earlyJobs[0]
-                .then(() => {copyPath(dir, directories.data, defineMode);}),
+                .then(() => {copyPath(dir, directories.data, 0o755);}),
             // Ensure that root folder has proper file mode
             chmod(workDir, 0o755)
         ] as const;
