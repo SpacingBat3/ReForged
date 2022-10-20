@@ -4,6 +4,6 @@ types/
 !makers/*/types/
 makers/*/types/*
 !makers/*/types/config.d.ts
-package-lock.json
-yarn.lock
+*lock*
+!package-lock.json
 .tsbuildinfo.json
