@@ -12,6 +12,7 @@
     "stripInternal": true
   },
   "files": [
-    "./src/main.ts"
+    "./src/main.ts",
+    "./src/utils.ts"
   ]
 }
