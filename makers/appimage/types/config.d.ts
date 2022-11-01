@@ -14,6 +14,17 @@ interface MakerAppImageConfigOptions {
     categories?: (
         FreeDesktopCategories["main"] | FreeDesktopCategories["additional"]
     )[],
+    /** Actions to be used within a generated desktop file */
+    actions?: Record<string, Partial<Record<string,string|null>> & {
+        /** Action's user-friendly name */
+        Name: string,
+        /** A path to action icon */
+        Icon?: string|null,
+        /** A command to execute on a desktop file action */
+        Exec?: string|null
+    }>
+    /** Path to desktop file to be used instead of generating a new one. */
+    desktopFile?: string,
     /**
      * GitHub Release of `AppImage/AppImageKit` from which this maker should
      * get the runtime and AppRun executable. By default it is `13`.

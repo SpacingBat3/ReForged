@@ -86,19 +86,21 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
                     md5: mapHash("AppRun",mapArch(targetArch))
                 },
                 /** Details about the generated `.desktop` file. */
-                desktop: generateDesktop({
-                    Type: "Application",
-                    Name: productName,
-                    GenericName: config.options?.genericName ?? null,
-                    Exec: config.options?.name ?? packageJSON.name,
-                    Icon: icon ? name : null,
-                    Categories: config.options?.categories ?
-                        config.options.categories.join(';')+';' :
-                        null,
-                    "X-AppImage-Name": name,
-                    "X-AppImage-Version": packageJSON.version,
-                    "X-AppImage-Arch": mapArch(targetArch)
-                }),
+                desktop: typeof config?.options?.desktopFile === "string" ?
+                    readFile(config.options.desktopFile, "utf-8") :
+                    Promise.resolve(generateDesktop({
+                        Type: "Application",
+                        Name: productName,
+                        GenericName: config.options?.genericName,
+                        Exec: config.options?.name ?? packageJSON.name,
+                        Icon: icon ? name : undefined,
+                        Categories: config.options?.categories ?
+                            config.options.categories.join(';')+';' :
+                            undefined,
+                        "X-AppImage-Name": name,
+                        "X-AppImage-Version": packageJSON.version,
+                        "X-AppImage-Arch": mapArch(targetArch)
+                    }, config.options?.actions)),
                 /** Shell script used to launch WebCord. */
                 shell: [
                     '#!/bin/bash',
@@ -195,6 +197,5 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
     }
 }
 
-const remote = 'https://github.com/AppImage/AppImageKit/releases/download/'
-
+const remote = 'https://github.com/AppImage/AppImageKit/releases/download/';
 module.exports = MakerAppImage;

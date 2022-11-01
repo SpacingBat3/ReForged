@@ -97,17 +97,31 @@ interface mkSquashFsEvent extends EventEmitter {
     emit(event: "error", error: Error): boolean;
 }
 
-export async function generateDesktop(desktopEntry: Record<string,string|null>, actions?: Record<string,Record<string,string|null>>) {
-  const template:string[] = [];
-  template.push('[Desktop Entry]');
-  for(const entry of Object.entries(desktopEntry)) if(entry[1] !== null)
-      template.push(entry.join('='));
-  if(actions) for(const [name,record] of Object.entries(actions)) {
-      template.push('\n[Desktop Action '+name+']');
-      for(const entry of Object.entries(record)) if(entry[1] !== null)
-          template.push(entry.join('='));
+export function generateDesktop(desktopEntry: Partial<Record<string,string|null>>, actions?: Record<string,Partial<Record<string,string|null>>&{ Name: string }>) {
+  function toEscapeSeq<T>(string:T): T extends string ? string : T {
+    if(typeof string === "string")
+      return string
+        .replaceAll("\s", "\\s")
+        .replaceAll("\t", "\\t")
+        .replaceAll("\r", "\\r")
+        .replaceAll("\n","\\n")
+        .replaceAll("\\","\\\\") as T extends string ? string : T
+    return string as T extends string ? string : T;
   }
-  return template.join('\n');
+  const template:Record<"desktop"|"actions",string[]> = { desktop:[], actions:[] };
+  let actionsKey:string|null = null;
+  template.desktop.push('[Desktop Entry]');
+  for(const entry of Object.entries(desktopEntry)) if(entry[0] !== "Actions" && entry[1] !== undefined && entry[1] !== null)
+      template.desktop.push(entry.map(v => toEscapeSeq(v)).join('='));
+  if(actions) for(const [name,record] of Object.entries(actions)) if(/[a-zA-Z]/.test(name)) {
+      actionsKey === null ? actionsKey = name : actionsKey += ";"+name;
+      template.actions.push('\n[Desktop Action '+name+']');
+      for(const entry of Object.entries(record)) if(entry[1] !== undefined && entry[1] !== null)
+          template.actions.push(entry.map(v => toEscapeSeq(v)).join('='));
+  }
+  if(actionsKey)
+    template.desktop.push("Actions="+actions);
+  return template.desktop.join('\n')+'\n'+template.actions.join('\n');
 }
 
 /**
@@ -299,12 +313,7 @@ export function getImageMetadata(image:Buffer):ImageMetadata {
   switch(partialMeta.type) {
     // Based on specification by W3C: https://www.w3.org/TR/PNG/
     case "PNG": {
-      const prefixIHDR = 4+image.findIndex((value,index,buffer) => {
-        if(value === 73 && buffer[index+1] === 72 && buffer[index+2] === 68 && buffer[index+3] === 82)
-          return true;
-        else
-          return false;
-      });
+      const prefixIHDR = 4+image.indexOf("IHDR")
       const rawMeta = {
         width: prefixIHDR === 3 ? null : image.readInt32BE(prefixIHDR),
         height: prefixIHDR === 3 ? null : image.readInt32BE(prefixIHDR+4)

@@ -27,8 +27,18 @@ of Electron Forge's configuration for this *maker* may look like this:
             icon: "/path/to/icon.png",
             // `Categories` in generated `.desktop` file.
             categories: [ "Utility" ],
+            // Actions of generated `.desktop` file.
+            actions: {
+                new_window: {
+                    Name: "Launch in new window!",
+                    Icon: "/path/to/new-window.png",
+                    Exec: "example-app --new-window"
+                }
+            },
+            // Desktop file to use instead of above.
+            desktopFile: "/path/to/example-app.desktop",
             // GitHub Release of `AppImage/AppImageKit`
-            AppImageKitRelease: 12
+            AppImageKitRelease: "continuous"
         }
     }
 }
