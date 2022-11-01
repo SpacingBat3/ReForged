@@ -181,11 +181,31 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
         // Wait for early/late jobs to finish
         await(Promise.all([...earlyJobs,...lateJobs]));
         // Run `mksquashfs` and wait for it to finish
+        const mkSquashFsArgs:string[] = [
+            workDir,
+            outFile,
+            "-noappend",
+            "-all-root",
+            "-all-time",
+            "0",
+            "-mkfs-time",
+            "0"
+        ];
+        if(config.options?.compressor)
+            mkSquashFsArgs.push("-comp", config.options.compressor);
+        if(config.options?.compressor === "xz")
+            mkSquashFsArgs.push(
+                // Defaults for `xz` took from AppImageTool:
+                "-Xdict-size",
+                "100%",
+                "-b",
+                "16384"
+            );
         await new Promise((resolve, reject) => {
             mkdir(dirname(outFile), {recursive: true}).then(() => {
-                mkSquashFs(workDir, outFile, "-all-root")
-                    .once("close", () => resolve(undefined))
-                    .once("error", (error) => reject(error));
+                mkSquashFs(...mkSquashFsArgs)
+                .once("close", () => resolve(undefined))
+                .once("error", (error) => reject(error));
             }).catch(error => reject(error));
         });
         // Append runtime to SquashFS image and wait for that task to finish

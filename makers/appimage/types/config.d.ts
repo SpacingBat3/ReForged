@@ -27,6 +27,8 @@ interface MakerAppImageConfigOptions {
     desktopFile?: string,
     /** Whenever calculate and embed MD5 digest in the runtime. **Default**: `true` */
     digestMd5?: boolean,
+    /** Use given compressor for SquashFS filesystem. Defaults to `mksquasfs` binary defaults. */
+    compressor?: "xz"|"gzip"|"lz4"|"lzo"|"zstd"|"lzma"
     /**
      * GitHub Release of `AppImage/AppImageKit` from which this maker should
      * get the runtime and AppRun executable. By default it is `13`.
