@@ -11,8 +11,7 @@ import {
     mkSquashFs,
     mapArch,
     mapHash,
-    getImageMetadata,
-    setChecksum
+    getImageMetadata
 } from "./utils"
 
 import MakerBase from "@electron-forge/maker-base";
