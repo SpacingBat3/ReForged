@@ -1,4 +1,5 @@
 import EventEmitter from "events";
+import { createHash, getHashes } from "crypto";
 
 import type { Mode } from "fs";
 import type { MakerOptions } from "@electron-forge/maker-base"
@@ -336,4 +337,18 @@ export function getImageMetadata(image:Buffer):ImageMetadata {
   if(validateImageMetadata(partialMeta))
     return partialMeta;
   throw new TypeError("Malformed function return type! ("+JSON.stringify(partialMeta)+").");
+}
+
+export function setChecksum(runtime:ArrayBuffer|Buffer,squashfs:Buffer): Buffer {
+  if(!getHashes().includes("md5"))
+    throw new Error("Current Node.js binary doesn't support \"md5\" digest algorithm.")
+  const hashHeader = ".digest_md5";
+  const buffer = runtime instanceof Buffer ? runtime : Buffer.from(runtime);
+  const hashOffset = buffer.indexOf(hashHeader)+hashHeader.length;
+  const [pre,post] = [buffer.subarray(0,hashOffset),buffer.subarray(hashOffset)];
+  return Buffer.concat([
+    pre,
+    createHash("md5").update(squashfs).digest(),
+    post
+  ]);
 }

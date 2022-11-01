@@ -25,6 +25,8 @@ interface MakerAppImageConfigOptions {
     }>
     /** Path to desktop file to be used instead of generating a new one. */
     desktopFile?: string,
+    /** Whenever calculate and embed MD5 digest in the runtime. **Default**: `true` */
+    digestMd5?: boolean,
     /**
      * GitHub Release of `AppImage/AppImageKit` from which this maker should
      * get the runtime and AppRun executable. By default it is `13`.
