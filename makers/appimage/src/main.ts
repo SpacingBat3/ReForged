@@ -210,11 +210,12 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
         });
         // Append runtime to SquashFS image and wait for that task to finish
         await sources.runtime.data
-            .then(
+            //TODO: Find how properly embed MD5 or SHA256 signatures
+            /*.then(
                 async runtime => config.options?.digestMd5??true ?
                     setChecksum(runtime, await readFile(outFile)) :
                     runtime
-            )
+            )*/
             .then(runtime => joinFiles(Buffer.from(runtime),outFile))
             .then(buffer => writeFile(outFile, buffer))
             .then(() => chmod(outFile, 0o755))

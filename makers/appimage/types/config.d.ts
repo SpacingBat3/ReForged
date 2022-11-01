@@ -26,7 +26,7 @@ interface MakerAppImageConfigOptions {
     /** Path to desktop file to be used instead of generating a new one. */
     desktopFile?: string,
     /** Whenever calculate and embed MD5 digest in the runtime. **Default**: `true` */
-    digestMd5?: boolean,
+    //digestMd5?: boolean,
     /** Use given compressor for SquashFS filesystem. Defaults to `mksquasfs` binary defaults. */
     compressor?: "xz"|"gzip"|"lz4"|"lzo"|"zstd"|"lzma"
     /**
