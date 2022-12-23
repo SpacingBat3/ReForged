@@ -16,13 +16,6 @@ import MakerBase from "@electron-forge/maker-base";
 import type { MakerAppImageConfig } from "../types/config";
 import type { MakerMeta } from "./utils";
 
-async function nodeFetch(url:string) {
-    const fetchModule = import("node-fetch").then(fetch => fetch.default);
-    if((globalThis as {fetch?:Awaited<typeof fetchModule>}).fetch !== undefined)
-        return (globalThis as unknown as {fetch:Awaited<typeof fetchModule>}).fetch(url)
-    return (await fetchModule)(url);
-}
-
 /** Currently supported release of AppImageKit distributables. */
 const supportedAppImageKit = 13;
 
@@ -67,7 +60,8 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
             sources = {
                 /** Details about the AppImage runtime. */
                 runtime: {
-                    data: nodeFetch(remote+currentTag+'/runtime-'+mapArch(targetArch))
+                    data: import("node-fetch") 
+                        .then(f => f.default(remote+currentTag+'/runtime-'+mapArch(targetArch)))
                         .then(response => {
                             if(response)
                                 return response.arrayBuffer()
@@ -78,7 +72,8 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
                 },
                 /** Details about AppRun ELF executable, used to start the app. */
                 AppRun: {
-                    data: nodeFetch(remote+currentTag+'/AppRun-'+mapArch(targetArch))
+                    data: import("node-fetch")
+                        .then(f => f.default(remote+currentTag+'/AppRun-'+mapArch(targetArch)))
                         .then(response => {
                             if(response)
                                 return response.arrayBuffer()
