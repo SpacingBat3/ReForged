@@ -1,6 +1,4 @@
-import srcmap from "source-map-support";
-
-srcmap.install();
+(process as {setSourceMapsEnabled?:(arg0:boolean)=>void}).setSourceMapsEnabled?.(true);
 
 import { createHash } from "crypto";
 
@@ -17,6 +15,17 @@ import {
 import MakerBase from "@electron-forge/maker-base";
 import type { MakerAppImageConfig } from "../types/config";
 import type { MakerMeta } from "./utils";
+
+/**
+ * A fetch-alike implementation used in this module, will be native API if
+ * present or otherwise `node-fetch`.
+ */
+const nodeFetch = (() => {
+    const fetchModule = import("node-fetch").then(fetch => fetch.default);
+    if((globalThis as {fetch?:Awaited<typeof fetchModule>}).fetch !== undefined)
+        return (url:string)=>(globalThis as unknown as {fetch:Awaited<typeof fetchModule>}).fetch(url)
+    return async (url:string) => (await fetchModule)(url);
+})()
 
 /** Currently supported release of AppImageKit distributables. */
 const supportedAppImageKit = 13;
@@ -62,8 +71,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
             sources = {
                 /** Details about the AppImage runtime. */
                 runtime: {
-                    data: import("node-fetch") 
-                        .then(f => f.default(remote+currentTag+'/runtime-'+mapArch(targetArch)))
+                    data: nodeFetch(remote+currentTag+'/runtime-'+mapArch(targetArch))
                         .then(response => {
                             if(response)
                                 return response.arrayBuffer()
@@ -74,8 +82,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
                 },
                 /** Details about AppRun ELF executable, used to start the app. */
                 AppRun: {
-                    data: import("node-fetch")
-                        .then(f => f.default(remote+currentTag+'/AppRun-'+mapArch(targetArch)))
+                    data: nodeFetch(remote+currentTag+'/AppRun-'+mapArch(targetArch))
                         .then(response => {
                             if(response)
                                 return response.arrayBuffer()
