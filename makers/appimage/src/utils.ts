@@ -102,11 +102,10 @@ export function generateDesktop(desktopEntry: Partial<Record<string,string|null>
   function toEscapeSeq<T>(string:T): T extends string ? string : T {
     if(typeof string === "string")
       return string
-        .replaceAll("\s", "\\s")
+        .replaceAll("\\","\\\\")
         .replaceAll("\t", "\\t")
         .replaceAll("\r", "\\r")
-        .replaceAll("\n","\\n")
-        .replaceAll("\\","\\\\") as T extends string ? string : T
+        .replaceAll("\n","\\n") as T extends string ? string : T
     return string as T extends string ? string : T;
   }
   const template:Record<"desktop"|"actions",string[]> = { desktop:[], actions:[] };

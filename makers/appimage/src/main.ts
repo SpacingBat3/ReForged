@@ -1,6 +1,4 @@
-import srcmap from "source-map-support";
-
-srcmap.install();
+(process as {setSourceMapsEnabled?:(arg0:boolean)=>void}).setSourceMapsEnabled?.(true);
 
 import { createHash } from "crypto";
 
@@ -15,9 +13,15 @@ import {
 } from "./utils"
 
 import MakerBase from "@electron-forge/maker-base";
-
 import type { MakerAppImageConfig } from "../types/config";
 import type { MakerMeta } from "./utils";
+
+async function nodeFetch(url:string) {
+    const fetchModule = import("node-fetch").then(fetch => fetch.default);
+    if((globalThis as {fetch?:Awaited<typeof fetchModule>}).fetch !== undefined)
+        return (globalThis as unknown as {fetch:Awaited<typeof fetchModule>}).fetch(url)
+    return (await fetchModule)(url);
+}
 
 /** Currently supported release of AppImageKit distributables. */
 const supportedAppImageKit = 13;
@@ -63,8 +67,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
             sources = {
                 /** Details about the AppImage runtime. */
                 runtime: {
-                    data: import("node-fetch") 
-                        .then(f => f.default(remote+currentTag+'/runtime-'+mapArch(targetArch)))
+                    data: nodeFetch(remote+currentTag+'/runtime-'+mapArch(targetArch))
                         .then(response => {
                             if(response)
                                 return response.arrayBuffer()
@@ -75,8 +78,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
                 },
                 /** Details about AppRun ELF executable, used to start the app. */
                 AppRun: {
-                    data: import("node-fetch")
-                        .then(f => f.default(remote+currentTag+'/AppRun-'+mapArch(targetArch)))
+                    data: nodeFetch(remote+currentTag+'/AppRun-'+mapArch(targetArch))
                         .then(response => {
                             if(response)
                                 return response.arrayBuffer()
@@ -101,7 +103,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
                         "X-AppImage-Version": packageJSON.version,
                         "X-AppImage-Arch": mapArch(targetArch)
                     }, config.options?.actions)),
-                /** Shell script used to launch WebCord. */
+                /** Shell script used to launch the application. */
                 shell: [
                     '#!/bin/bash',
                     'exec "${0%/*}/../lib/'+name+'/'+name+'" "${@}"'
