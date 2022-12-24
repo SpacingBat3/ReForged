@@ -1,20 +1,12 @@
 {
-  "extends": "./node_modules/@tsconfig/node16-strictest/tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "incremental": true,
-    "tsBuildInfoFile": "./.tsbuildinfo.json",
-    "module": "Node16",
-    "moduleResolution": "Node16",
-    "target": "ES2022",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
+    "tsBuildInfoFile": "../../cache/tsc/maker-appimage.json",
     "outDir": "./dist",
     "declarationDir": "./types",
-    "stripInternal": true
   },
   "files": [
-    "./src/main.ts",
-    "./src/utils.ts"
+    "src/main.ts",
+    "src/utils.ts"
   ]
 }

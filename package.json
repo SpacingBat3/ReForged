@@ -1,0 +1,31 @@
+{
+  "name": "reforged",
+  "version": "0.0.0-undefined",
+  "description": "A set of Electron Forge tools, makers and publishers (project package).",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SpacingBat3/ReForged.git"
+  },
+  "author": "SpacingBat3 <git@spacingbat3.anonaddy.com> (https://github.com/SpacingBat3)",
+  "bugs": {
+    "url": "https://github.com/SpacingBat3/ReForged/issues"
+  },
+  "homepage": "https://github.com/SpacingBat3/ReForged#readme",
+  "devDependencies": {
+    "@tsconfig/node16-strictest": "^1.0.4",
+    "@types/node": "^18.11.17",
+    "typescript": "^4.9.4"
+  },
+  "workspaces": [
+    "makers/*/"
+  ],
+  "private": true,
+  "engines": {
+    "node": "^19.0.0 || ^18.11.0 || ^16.1.0",
+    "npm": "^7.0.0 || ^8.0.0 || ^9.0.0"
+  },
+  "license": "ISC"
+}
