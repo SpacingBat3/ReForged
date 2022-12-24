@@ -1,4 +1,6 @@
-(process as {setSourceMapsEnabled?:(arg0:boolean)=>void}).setSourceMapsEnabled?.(true);
+import srcmap from "source-map-support";
+
+srcmap.install();
 
 import { createHash } from "crypto";
 
