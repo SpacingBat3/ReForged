@@ -128,50 +128,44 @@ export function generateDesktop(desktopEntry: Partial<Record<string,string|null>
  * to Unix `cp -R` command.
  */
 export async function copyPath(source:string, destination:string, dirmode: Mode|ModeFunction = 0o644) {
+  const fs = Promise.all([import("fs"), import("fs/promises")])
+    .then(([sync,async]) => ({...sync, ...async}));
+  const resolve = import("path").then(path => path.resolve);
   async function copyDirRecursively(source:string, destination:string) {
     const jobs: Array<Promise<void>> = [];
-    const [
-      {copyFile, readdir, lstat, mkdir},
-      {resolve}
-    ] = await Promise.all([
-      import("fs/promises"),
-      import("path")
-    ]);
-    const items = await readdir(source);
+    const items = await (await fs).readdir(source);
     const mode = typeof dirmode === "function" ? dirmode(source,destination) : dirmode;
-    await mkdir(destination, await mode);
+    await (await fs).mkdir(destination, await mode);
     for(const item of items) {
       const itemPath = {
-        src: resolve(source, item),
-        dest: resolve(destination, item)
+        src: (await resolve)(source, item),
+        dest: (await resolve)(destination, item)
       }
-      jobs.push(lstat(itemPath.src).then(async(stats) => {
+      jobs.push((await fs).lstat(itemPath.src).then(async(stats) => {
         if(stats.isDirectory())
           await copyDirRecursively(itemPath.src, itemPath.dest);
         else {
-          await copyFile(itemPath.src, itemPath.dest);
+          await (await fs).copyFile(itemPath.src, itemPath.dest);
         }
       }));
     }
     return void await Promise.all(jobs);
   }
-  const [{lstat, copyFile}, {existsSync}] = await Promise.all([import("fs/promises"), import("fs")]);
-  const stats = lstat(source);
-  const resolvedDestination = destination.endsWith("/") || existsSync(destination) ?
+  const stats = (await fs).lstat(source);
+  const resolvedDestination = destination.endsWith("/") || (await fs).existsSync(destination) ?
     import("path").then(path => path.resolve(destination, path.basename(source))) :
     destination
   if((await stats).isDirectory()) {
     return copyDirRecursively(source, await resolvedDestination);
   } else {
-    return copyFile(source, await resolvedDestination);
+    return (await fs).copyFile(source, await resolvedDestination);
   }
 }
 
 /**
  * Raw bindings to `mksquashfs` binary.
  * 
- * @returns An event used to watch for `mksquashfs` changes, including the job
- * progress (in percent – as float number).
+ * @returns An event used to watch for `mksquashfs` changes, including the job progress (in percent – as float number).
  */
 export function mkSquashFs(...squashfsOptions:string[]) {
   const event:mkSquashFsEvent = new EventEmitter();

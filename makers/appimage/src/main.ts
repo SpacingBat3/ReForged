@@ -40,8 +40,8 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
     const [
       { tmpdir },
       { join, dirname, extname, relative },
-      { mkdtempSync, existsSync },
-      { mkdir, writeFile, copyFile, readFile, chmod, rm, symlink }
+      { mkdtempSync, existsSync, rmSync },
+      { mkdir, writeFile, copyFile, readFile, chmod, symlink }
     ] = await Promise.all([
       import("os"),
       import("path"),
@@ -114,12 +114,15 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
           'exec "${0%/*}/../lib/'+name+'/'+name+'" "${@}"'
         ].join('\n')
       };
-    if(existsSync(outFile)) rm(outFile);
+    this.ensureFile(outFile);
     /** A temporary directory used for the packaging. */
     const workDir = mkdtempSync(join(tmpdir(), `.${productName}-${packageJSON.version}-${targetArch}-`));
     const iconMeta = icon ? readFile(icon).then(icon => getImageMetadata(icon)) : Promise.resolve(undefined);
     {
-      const cleanup = () => rm(workDir, {recursive: true});
+      let cleanup = () => {
+        cleanup = () => {};
+        rmSync(workDir, {recursive: true});
+      }
       process.on("uncaughtExceptionMonitor", cleanup);
       process.on("exit", cleanup);
     }
@@ -139,17 +142,17 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
     const iconPath = icon ? join(workDir, name+extname(icon)) : undefined;
     /** First-step jobs, which does not depend on any other job. */
     const earlyJobs = [
-      // Create further directory tree
+      // Create further directory tree (0,1,2)
       mkdir(directories.lib, {recursive: true, mode: 0o755}),
       mkdir(directories.bin, {recursive: true, mode: 0o755}),
       directories.icons
         .then(path => path ? mkdir(path, {recursive: true, mode: 0o755}).then(() => path) : undefined),
-      // Save `.desktop` to file
+      // Save `.desktop` to file (3)
       sources.desktop
         .then(data => writeFile(
           join(workDir, productName+'.desktop'), data, {mode:0o755, encoding: "utf-8"})
         ),
-      // Verify and save `AppRun` to file
+      // Verify and save `AppRun` to file (4)
       sources.AppRun.data
         .then(data => {
           const buffer = Buffer.from(data);
@@ -162,7 +165,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
           }
           writeFile(join(workDir, 'AppRun'), buffer, {mode: 0o755});
         }),
-      // Save icon to file and symlink it as `.DirIcon`
+      // Save icon to file and symlink it as `.DirIcon` (5)
       icon && iconPath && existsSync(icon) ?
         copyFile(icon, iconPath)
           .then(() => symlink(relative(workDir, iconPath), join(workDir, ".DirIcon"), 'file'))
