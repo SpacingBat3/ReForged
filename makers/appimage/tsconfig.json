@@ -3,6 +3,7 @@
   "compilerOptions": {
     "tsBuildInfoFile": "../../cache/tsc/maker-appimage.json",
     "outDir": "./dist",
+    "rootDir": "./src",
     "declarationDir": "./types",
   },
   "files": [
