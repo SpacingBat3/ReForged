@@ -350,3 +350,16 @@ export function setChecksum(runtime:ArrayBuffer|Buffer,squashfs:Buffer): Buffer 
     post
   ]);
 }
+
+export function sanitizeName(name:string) {
+  if(typeof name !== "string")
+    name = String(name);
+  if(/^[^a-z0-9-]*$/.test(name))
+    name = name
+      .toLowerCase()
+      .slice(name.search(/[a-z0-9]/))
+      .replaceAll(/[^a-z0-9-]/g,"-")
+  if(name.length === 0)
+    throw new Error("Parameter 'name' is not sanitizable!");
+  return name;
+}

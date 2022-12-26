@@ -9,7 +9,8 @@ import {
   mkSquashFs,
   mapArch,
   mapHash,
-  getImageMetadata
+  getImageMetadata,
+  sanitizeName
 } from "./utils"
 
 import MakerBase from "@electron-forge/maker-base";
@@ -50,7 +51,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
     /** Current maker configuration. */
     const config = this.config,
       /** Node.js friendly name of the application. */
-      name = config.options?.name ?? (packageJSON.name as string),
+      name = sanitizeName(config.options?.name ?? packageJSON.name as string),
       /** Human-friendly application name. */
       productName = config.options?.productName ?? appName,
       /** A path to application's icon. */
