@@ -79,7 +79,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
               else
                 throw new Error("AppRun request failure.")
             }),
-          md5: mapHash("runtime",mapArch(targetArch))
+          md5: mapHash.runtime[mapArch(targetArch)]
         },
         /** Details about AppRun ELF executable, used to start the app. */
         AppRun: {
@@ -90,7 +90,7 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
               else
                 throw new Error("AppRun request failure.")
             }),
-          md5: mapHash("AppRun",mapArch(targetArch))
+          md5: mapHash.AppRun[mapArch(targetArch)]
         },
         /** Details about the generated `.desktop` file. */
         desktop: typeof config?.options?.desktopFile === "string" ?

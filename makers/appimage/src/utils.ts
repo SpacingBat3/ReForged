@@ -229,37 +229,25 @@ export function mapArch(arch:ForgeArch):AppImageArch {
   }
 }
 
-/** 
- * Maps files to their MD5 hashes.
- * 
+/**
+ * An object which maps files to their MD5 hashes.
+ *
  * **Note:** Checksums are valid only for the assets of AppImageKit `13`.
  */
-export function mapHash(source:'runtime'|'AppRun', arch:AppImageArch) {
-  switch(source) {
-    case "runtime":
-      switch(arch) {
-        case "x86_64":
-          return "37d6f0bc41f143c8c0376e874769e20a";
-        case "i686":
-          return "498c198765ebb914e43713af4f85c5a9";
-        case "aarch64":
-          return "d41d8cd98f00b204e9800998ecf8427e";
-        case "armhf":
-          return "85b929e78dc59098928df1655b4b7963";
-      }
-    case "AppRun":
-      switch(arch) {
-        case "x86_64":
-          return "91b81afc501f78761adbf3bab49b0590";
-        case "i686":
-          return "a16e8b7d1052a388bb9fd1e42d790434";
-        case "aarch64":
-          return "e991d36711f99097e5c46deabb0c84a9";
-        case "armhf":
-          return "4e7401fd36d3d4afa4963bf0a8e08221";
-      }      
-  }
-}
+export const mapHash = Object.freeze({
+  runtime: Object.freeze({
+    x86_64: "37d6f0bc41f143c8c0376e874769e20a",
+    i686: "498c198765ebb914e43713af4f85c5a9",
+    aarch64: "d41d8cd98f00b204e9800998ecf8427e",
+    armhf: "85b929e78dc59098928df1655b4b7963"
+  }) satisfies Readonly<Record<AppImageArch,string>>,
+  AppRun: Object.freeze({
+    x86_64: "91b81afc501f78761adbf3bab49b0590",
+    i686: "a16e8b7d1052a388bb9fd1e42d790434",
+    aarch64: "e991d36711f99097e5c46deabb0c84a9",
+    armhf: "4e7401fd36d3d4afa4963bf0a8e08221"
+  }) satisfies Readonly<Record<AppImageArch,string>>
+});
 
 /**
  * A function to validate if the type of any value is like the one in
