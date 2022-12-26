@@ -34,7 +34,7 @@ const supportedAppImageKit = 13;
 class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config> {
   defaultPlatforms = ["linux"];
   name = "AppImage";
-  override isSupportedOnCurrentPlatform = () => process.platform === "linux";
+  override isSupportedOnCurrentPlatform = () => true;
   override requiredExternalBinaries = ["mksquashfs"];
   override async make({appName,dir,makeDir,packageJSON,targetArch}: MakerMeta) {
     const [
