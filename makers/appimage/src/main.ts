@@ -31,7 +31,7 @@ const nodeFetch = (() => {
 /** Currently supported release of AppImageKit distributables. */
 const supportedAppImageKit = 13;
 
-class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config> {
+export default class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config> {
   defaultPlatforms = ["linux"];
   name = "AppImage";
   override isSupportedOnCurrentPlatform = () => true;
@@ -234,4 +234,8 @@ class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config
 }
 
 const remote = 'https://github.com/AppImage/AppImageKit/releases/download/';
-module.exports = MakerAppImage;
+
+export {
+  MakerAppImage,
+  MakerAppImageConfig
+};
