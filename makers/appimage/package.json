@@ -1,6 +1,6 @@
 {
   "name": "@reforged/maker-appimage",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "An AppImage maker implementation for the Electron Forge.",
   "main": "dist/main.js",
   "scripts": {
@@ -24,7 +24,7 @@
     "@electron-forge/maker-base": "^6.0.4",
     "node-fetch": "^3.2.5"
   },
-  "types": "./types/",
+  "types": "./types/main.d.ts",
   "publishConfig": {
     "access": "public"
   },
