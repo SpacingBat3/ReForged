@@ -14,40 +14,41 @@ at least provide the path of the icon and `categories`. An example relevant part
 of Electron Forge's configuration for this *maker* may look like this:
 ```js
 {
-    name: "@reforged/maker-appimage",
-    config: {
-        options: {
-            // A name that can be applied to the executable name.
-            name: "example-app",
-            // Human-friendly name of the application.
-            productName: "Example Electron Application",
-            // `GenericName` in generated `.desktop` file.
-            genericName: "Example application",
-            // Path to application's icon.
-            icon: "/path/to/icon.png",
-            // `Categories` in generated `.desktop` file.
-            categories: [ "Utility" ],
-            // Actions of generated `.desktop` file.
-            actions: {
-                new_window: {
-                    Name: "Launch in new window!",
-                    Icon: "/path/to/new-window.png",
-                    Exec: "example-app --new-window"
-                }
-            },
-            // Desktop file to use instead of above.
-            desktopFile: "/path/to/example-app.desktop",
-            // GitHub Release of `AppImage/AppImageKit`
-            AppImageKitRelease: "continuous"
+  name: "@reforged/maker-appimage",
+  config: {
+    options: {
+      // Package / executable name.
+      name: "example-app",
+      // Human-friendly name of the application.
+      productName: "Example Electron Application",
+      // `GenericName` in generated `.desktop` file.
+      genericName: "Example application",
+      // Path to application's icon.
+      icon: "/path/to/icon.png",
+      // `Categories` in generated `.desktop` file.
+      categories: [ "Utility" ],
+      // Actions of generated `.desktop` file.
+      actions: {
+        new_window: {
+          Name: "Launch in new window!",
+          Icon: "/path/to/new-window.png",
+          Exec: "example-app --new-window"
         }
+      },
+      // Desktop file to be used instead of the configuration above.
+      desktopFile: "/path/to/example-app.desktop",
+      // Release of `AppImage/AppImageKit`, either number or "continuous".
+      AppImageKitRelease: "continuous"
     }
+  }
 }
 ```
 
-You may also import types from `@reforged/maker-appimage/types/config` if you
-wish to verify Electron Forge configuration with TypeScript and access JSDoc
-comments in your editor if it supports them.
+You may also import `MakerAppImageConfig` interface if you wish to verify
+Electron Forge configuration with TypeScript (when declaring it outside of
+`package.json` in JS/TS file) and access JSDoc comments in your editor if it
+supports them.
 
-[1]: https://github.com/electron-userland/electron-forge
+[1]: https://github.com/electron/forge
 [2]: https://github.com/SpacingBat3/ReForged
 [3]: https://www.electronforge.io/configuration
