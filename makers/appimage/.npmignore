@@ -1,5 +1,0 @@
-src/
-tsconfig.json
-.tsbuildinfo.json
-package-lock.json
-yarn.lock
