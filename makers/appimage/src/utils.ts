@@ -333,15 +333,22 @@ export function setChecksum(runtime:ArrayBuffer|Buffer,squashfs:Buffer): Buffer 
   ]);
 }
 
-export function sanitizeName(name:string) {
+type nullString<T> = T extends null|undefined ? T : string;
+
+export function sanitizeName<T>(name:T):nullString<T>  {
+  if(name === null || name === undefined)
+    return name as nullString<T>;
+  let stringName:string;
   if(typeof name !== "string")
-    name = String(name);
-  if(/^[^a-z0-9-]*$/.test(name))
-    name = name
+    stringName = String(name);
+  else
+    stringName = name;
+  if(/^[^a-z0-9-]*$/.test(stringName))
+    stringName = stringName
       .toLowerCase()
-      .slice(name.search(/[a-z0-9]/))
+      .slice(stringName.search(/[a-z0-9]/))
       .replaceAll(/[^a-z0-9-]/g,"-")
-  if(name.length === 0)
+  if(stringName.length === 0)
     throw new Error("Parameter 'name' is not sanitizable!");
-  return name;
+  return stringName as nullString<T>;
 }
