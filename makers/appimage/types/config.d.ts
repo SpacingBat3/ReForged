@@ -1,8 +1,8 @@
 interface MakerAppImageConfigOptions {
     /**
-     * Name of the package to be used as folder name, `X-AppImage-Name` and
-     * executable etc. It should contain only lowercase letters and hypens.
-     * It should also start from a letter and contain at least one character.
+     * Name of the package (used as folder name, `X-AppImage-Name` etc).
+     * It should contain only lowercase letters and hypens. It should also start
+     * from a letter and contain at least one character.
      * 
      * If above requirements aren't met, maker will approach to sanitize the
      * string to match the required format. This process might fail if
@@ -10,13 +10,20 @@ interface MakerAppImageConfigOptions {
      * shouldn't depend on the sanitizer when setting the `name` property on
      * their own.
      * 
-     * Defaults to `packageJSON.name`
+     * Defaults to sanitized `packageJSON.name`.
      */
     name?: string,
     /**
+     * Name of the executable to put into the `Exec` field of generated
+     * `.desktop` file.
+     * 
+     * Defaults to `options.name`.
+     */
+    bin?: string,
+    /**
      * Human-friendly name of the application.
      * 
-     * Defaults to `packageJSON.productName`
+     * Defaults to `packageJSON.productName`.
      */
     productName?: string,
     /**
@@ -51,7 +58,7 @@ interface MakerAppImageConfigOptions {
     /**
      * Whenever calculate and embed MD5 digest in the runtime.
      * 
-     * Defaults to `true`
+     * Defaults to `true`.
      */
     //digestMd5?: boolean,
     /**
@@ -97,14 +104,14 @@ export interface MakerAppImageConfig {
     );
     /**
      * Categories that provide more fine grained information about the
-     * application
+     * application.
      */
     additional: (
         "Building" | "Debugger" | "IDE" | "GUIDesigner" | "Profiling" |
-        "RevisionControl" | "Translation" | "Calendar" | "ContactManagement" |
-        "Database" | "Dictionary" | "Chart" | "Email" | "Finance" |
-        "FlowChart" | "PDA" | "ProjectManagement" | "Presentation" |
-        "Spreadsheet" | "WordProcessor" | "Scanning" | "OCR" | "Photography" |
+        "RevisionControl" | "Translation" | "Calendar" | "Database" |
+        "Dictionary" | "Chart" | "Email" | "Finance" | "FlowChart" | "PDA" |
+        "Presentation" | "Spreadsheet" | "WordProcessor" | "Scanning" | "OCR" |
+        "Photography" | `${"Contact"|"Project"}Management` |
         `${"2D"|"3D"|"Vector"|"Raster"}Graphics` | "Publishing" | "Viewer" |
         `Text${"Tools"|"Editor"}` | "DesktopSettings" | "HardwareSettings" |
         "Printing" | "PackageManager" | "Dialup" | "InstantMessaging" | "Chat" |

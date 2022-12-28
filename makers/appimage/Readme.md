@@ -17,8 +17,10 @@ of Electron Forge's configuration for this *maker* may look like this:
   name: "@reforged/maker-appimage",
   config: {
     options: {
-      // Package / executable name.
+      // Package name.
       name: "example-app",
+      // Executable name.
+      bin: "app",
       // Human-friendly name of the application.
       productName: "Example Electron Application",
       // `GenericName` in generated `.desktop` file.

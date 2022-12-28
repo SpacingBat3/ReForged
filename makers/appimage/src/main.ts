@@ -52,6 +52,9 @@ export default class MakerAppImage<Config extends MakerAppImageConfig> extends M
     const config = this.config,
       /** Node.js friendly name of the application. */
       name = sanitizeName(config.options?.name ?? packageJSON.name as string),
+      bin = config.options?.bin ??
+        sanitizeName(config.options?.name) ??
+        (packageJSON.productName ?? sanitizeName(packageJSON.name)) as string,
       /** Human-friendly application name. */
       productName = config.options?.productName ?? appName,
       /** A path to application's icon. */
@@ -99,7 +102,7 @@ export default class MakerAppImage<Config extends MakerAppImageConfig> extends M
             Type: "Application",
             Name: productName,
             GenericName: config.options?.genericName,
-            Exec: config.options?.name ?? packageJSON.name,
+            Exec: bin,
             Icon: icon ? name : undefined,
             Categories: config.options?.categories ?
               config.options.categories.join(';')+';' :
@@ -111,7 +114,7 @@ export default class MakerAppImage<Config extends MakerAppImageConfig> extends M
         /** Shell script used to launch the application. */
         shell: [
           '#!/bin/bash',
-          'exec "${0%/*}/../lib/'+name+'/'+name+'" "${@}"'
+          'exec "${0%/*}/../lib/'+name+'/'+bin+'" "${@}"'
         ].join('\n')
       };
     this.ensureFile(outFile);
@@ -132,7 +135,7 @@ export default class MakerAppImage<Config extends MakerAppImageConfig> extends M
     })
     const directories = {
       lib: join(workDir, 'usr/lib/'),
-      data: join(workDir, 'usr/lib/', config.options?.name ?? packageJSON.name),
+      data: join(workDir, 'usr/lib/', name),
       bin: join(workDir, 'usr/bin'),
       icons: iconMeta.then(meta => meta && meta.width && meta.height ?
         join(workDir, 'usr/share/icons/hicolor', meta.width.toFixed(0)+'x'+meta.height.toFixed(0)) :
@@ -174,7 +177,7 @@ export default class MakerAppImage<Config extends MakerAppImageConfig> extends M
     const lateJobs = [
       // Write shell script to file
       earlyJobs[1]
-        .then(() => writeFile(join(directories.bin, name),sources.shell, {mode: 0o755})),
+        .then(() => writeFile(join(directories.bin, bin),sources.shell, {mode: 0o755})),
       // Copy Electron app to AppImage directories
       earlyJobs[0]
         .then(() => copyPath(dir, directories.data, 0o755)),
