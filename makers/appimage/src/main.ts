@@ -52,9 +52,7 @@ export default class MakerAppImage<Config extends MakerAppImageConfig> extends M
     const config = this.config,
       /** Node.js friendly name of the application. */
       name = sanitizeName(config.options?.name ?? packageJSON.name as string),
-      bin = config.options?.bin ??
-        sanitizeName(config.options?.name) ??
-        (packageJSON.productName ?? sanitizeName(packageJSON.name)) as string,
+      bin = config.options?.bin ?? name,
       /** Human-friendly application name. */
       productName = config.options?.productName ?? appName,
       /** A path to application's icon. */
