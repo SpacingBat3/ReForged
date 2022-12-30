@@ -1,6 +1,23 @@
 (process as {setSourceMapsEnabled?:(arg0:boolean)=>void}).setSourceMapsEnabled?.(true);
 
 import { createHash } from "crypto";
+import { tmpdir } from "os";
+import { resolve, dirname, extname, relative } from "path";
+import {
+  mkdtempSync,
+  existsSync,
+  rmSync
+} from "fs";
+import {
+  mkdir,
+  writeFile,
+  copyFile,
+  readFile,
+  chmod,
+  symlink
+} from "fs/promises";
+
+import MakerBase from "@electron-forge/maker-base";
 
 import {
   copyPath,
@@ -12,11 +29,8 @@ import {
   getImageMetadata,
   sanitizeName
 } from "./utils"
-
-import MakerBase from "@electron-forge/maker-base";
 import type { MakerAppImageConfig } from "../types/config";
 import type { MakerMeta } from "./utils";
-
 /**
  * A fetch-alike implementation used in this module, will be native API if
  * present or otherwise `node-fetch`.
@@ -31,36 +45,34 @@ const nodeFetch = (() => {
 /** Currently supported release of AppImageKit distributables. */
 const supportedAppImageKit = 13;
 
-export default class MakerAppImage<Config extends MakerAppImageConfig> extends MakerBase<Config> {
+/** A URL from which assets will be downloaded. */
+const remote = 'https://github.com/AppImage/AppImageKit/releases/download/';
+
+
+export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerBase<C> {
   defaultPlatforms = ["linux"];
   name = "AppImage";
   override isSupportedOnCurrentPlatform = () => true;
   override requiredExternalBinaries = ["mksquashfs"];
   override async make({appName,dir,makeDir,packageJSON,targetArch}: MakerMeta) {
-    const [
-      { tmpdir },
-      { join, dirname, extname, relative },
-      { mkdtempSync, existsSync, rmSync },
-      { mkdir, writeFile, copyFile, readFile, chmod, symlink }
-    ] = await Promise.all([
-      import("os"),
-      import("path"),
-      import("fs"),
-      import("fs/promises"),
-    ]);
-    /** Current maker configuration. */
-    const config = this.config,
+    const {
+      actions,
+      categories,
+      compressor,
+      genericName
+    } = (this.config.options ?? {});
       /** Node.js friendly name of the application. */
-      name = sanitizeName(config.options?.name ?? packageJSON.name as string),
-      bin = config.options?.bin ?? name,
+    const name = sanitizeName(this.config.options?.name ?? packageJSON.name as string),
+      /** Name of binary, used for shell script generation and `Exec` values. */
+      bin = this.config.options?.bin ?? name,
       /** Human-friendly application name. */
-      productName = config.options?.productName ?? appName,
+      productName = this.config.options?.productName ?? appName,
       /** A path to application's icon. */
-      icon = config?.options?.icon ?? null,
+      icon = this.config?.options?.icon ?? null,
       /** Resolved path to AppImage output file. */
-      outFile = join(makeDir, this.name, targetArch, `${productName}-${packageJSON.version}-${targetArch}.AppImage`),
+      outFile = resolve(makeDir, this.name, targetArch, `${productName}-${packageJSON.version}-${targetArch}.AppImage`),
       /** A currently used AppImageKit release. */
-      currentTag = config.options?.AppImageKitRelease ?? supportedAppImageKit,
+      currentTag = this.config.options?.AppImageKitRelease ?? supportedAppImageKit,
       /**
        * Detailed information about the source files.
        * 
@@ -94,25 +106,25 @@ export default class MakerAppImage<Config extends MakerAppImageConfig> extends M
           md5: mapHash.AppRun[mapArch(targetArch)]
         },
         /** Details about the generated `.desktop` file. */
-        desktop: typeof config?.options?.desktopFile === "string" ?
-          readFile(config.options.desktopFile, "utf-8") :
+        desktop: typeof this.config.options?.desktopFile === "string" ?
+          readFile(this.config.options.desktopFile, "utf-8") :
           Promise.resolve(generateDesktop({
             Type: "Application",
             Name: productName,
-            GenericName: config.options?.genericName,
+            GenericName: genericName,
             Exec: bin,
             Icon: icon ? name : undefined,
-            Categories: config.options?.categories ?
-              config.options.categories.join(';')+';' :
+            Categories: categories ?
+              categories.join(';')+';' :
               undefined,
             "X-AppImage-Name": name,
             "X-AppImage-Version": packageJSON.version,
             "X-AppImage-Arch": mapArch(targetArch)
-          }, config.options?.actions)),
+          }, actions)),
         /** Shell script used to launch the application. */
         shell: [
           '#!/bin/bash',
-          'exec "${0%/*}/../lib/'+name+'/'+bin+'" "${@}"'
+          'exec "${0%/*/*}/lib/'+name+'/'+bin+'" "${@}"'
         ].join('\n')
       };
     this.ensureFile(outFile);
@@ -124,7 +136,7 @@ export default class MakerAppImage<Config extends MakerAppImageConfig> extends M
         "'options.bin' in this maker are pointing to valid file."
       ].join(" "));
     /** A temporary directory used for the packaging. */
-    const workDir = mkdtempSync(join(tmpdir(), `.${productName}-${packageJSON.version}-${targetArch}-`));
+    const workDir = mkdtempSync(resolve(tmpdir(), `.${productName}-${packageJSON.version}-${targetArch}-`));
     const iconMeta = icon ? readFile(icon).then(icon => getImageMetadata(icon)) : Promise.resolve(undefined);
     {
       let cleanup = () => {
@@ -139,15 +151,15 @@ export default class MakerAppImage<Config extends MakerAppImageConfig> extends M
       process.exit(130);
     })
     const directories = {
-      lib: join(workDir, 'usr/lib/'),
-      data: join(workDir, 'usr/lib/', name),
-      bin: join(workDir, 'usr/bin'),
+      lib: resolve(workDir, 'usr/lib/'),
+      data: resolve(workDir, 'usr/lib/', name),
+      bin: resolve(workDir, 'usr/bin'),
       icons: iconMeta.then(meta => meta && meta.width && meta.height ?
-        join(workDir, 'usr/share/icons/hicolor', meta.width.toFixed(0)+'x'+meta.height.toFixed(0)) :
+        resolve(workDir, 'usr/share/icons/hicolor', meta.width.toFixed(0)+'x'+meta.height.toFixed(0)) :
         null
       )
     }
-    const iconPath = icon ? join(workDir, name+extname(icon)) : undefined;
+    const iconPath = icon ? resolve(workDir, name+extname(icon)) : undefined;
     /** First-step jobs, which does not depend on any other job. */
     const earlyJobs = [
       // Create further directory tree (0,1,2)
@@ -158,7 +170,7 @@ export default class MakerAppImage<Config extends MakerAppImageConfig> extends M
       // Save `.desktop` to file (3)
       sources.desktop
         .then(data => writeFile(
-          join(workDir, productName+'.desktop'), data, {mode:0o755, encoding: "utf-8"})
+          resolve(workDir, productName+'.desktop'), data, {mode:0o755, encoding: "utf-8"})
         ),
       // Verify and save `AppRun` to file (4)
       sources.AppRun.data
@@ -171,25 +183,25 @@ export default class MakerAppImage<Config extends MakerAppImageConfig> extends M
             if(hash !== sources.AppRun.md5)
               throw new Error("AppRun hash mismatch.");
           }
-          writeFile(join(workDir, 'AppRun'), buffer, {mode: 0o755});
+          return writeFile(resolve(workDir, 'AppRun'), buffer, {mode: 0o755});
         }),
       // Save icon to file and symlink it as `.DirIcon` (5)
       icon && iconPath && existsSync(icon) ?
         copyFile(icon, iconPath)
-          .then(() => symlink(relative(workDir, iconPath), join(workDir, ".DirIcon"), 'file'))
+          .then(() => symlink(relative(workDir, iconPath), resolve(workDir, ".DirIcon"), 'file'))
         : Promise.reject(Error("Invalid icon / icon path.")),
     ] as const;
     const lateJobs = [
       // Write shell script to file
       earlyJobs[1]
-        .then(() => writeFile(join(directories.bin, bin),sources.shell, {mode: 0o755})),
+        .then(() => writeFile(resolve(directories.bin, bin),sources.shell, {mode: 0o755})),
       // Copy Electron app to AppImage directories
       earlyJobs[0]
         .then(() => copyPath(dir, directories.data, 0o755)),
       // Copy icon to `usr` directory whenever possible
       Promise.all([earlyJobs[2],earlyJobs[5]])
         .then(([path]) => icon && path ?
-          copyFile(icon, join(path,name+extname(icon))) :
+          copyFile(icon, resolve(path,name+extname(icon))) :
           void 0
         ),
       // Ensure that root folder has proper file mode
@@ -208,9 +220,9 @@ export default class MakerAppImage<Config extends MakerAppImageConfig> extends M
       "-mkfs-time",
       "0"
     ];
-    if(config.options?.compressor)
-      mkSquashFsArgs.push("-comp", config.options.compressor);
-    if(config.options?.compressor === "xz")
+    if(compressor)
+      mkSquashFsArgs.push("-comp", compressor);
+    if(compressor === "xz")
       mkSquashFsArgs.push(
         // Defaults for `xz` took from AppImageTool:
         "-Xdict-size",
@@ -240,9 +252,6 @@ export default class MakerAppImage<Config extends MakerAppImageConfig> extends M
     return [outFile];
   }
 }
-
-const remote = 'https://github.com/AppImage/AppImageKit/releases/download/';
-
 export {
   MakerAppImage,
   MakerAppImageConfig
