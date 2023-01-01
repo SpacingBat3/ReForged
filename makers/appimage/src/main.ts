@@ -110,6 +110,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         desktop: typeof this.config.options?.desktopFile === "string" ?
           readFile(this.config.options.desktopFile, "utf-8") :
           Promise.resolve(generateDesktop({
+            Version: "1.5",
             Type: "Application",
             Name: productName,
             GenericName: genericName,
