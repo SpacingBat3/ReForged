@@ -125,8 +125,11 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
           }, actions)),
         /** Shell script used to launch the application. */
         shell: [
-          '#!/bin/bash',
-          `exec "\${\${0/\\/\\/*/\\/}%/*/*}/lib/${name}/${binShell}" "\${@}"`
+          '#!/bin/sh',
+          // Normalized string to 'usr/' in the AppImage.
+          'USR="$(sed \'s/\\/\\/*/\\//g;s/\\/$//;s/\\/[^/]*\\/[^/]*$//\' <<< "$0")"',
+          // Executes the binary and passes arguments to it.
+          `exec "\$USR/lib/${name}/${binShell}" "\$@"`
         ].join('\n')
       };
     this.ensureFile(outFile);
