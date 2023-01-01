@@ -126,7 +126,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         /** Shell script used to launch the application. */
         shell: [
           '#!/bin/bash',
-          `exec "\${\${0/\/\/*/\/}%/*/*}/lib/${name}/${binShell}" "\${@}"`
+          `exec "\${\${0/\\/\\/*/\\/}%/*/*}/lib/${name}/${binShell}" "\${@}"`
         ].join('\n')
       };
     this.ensureFile(outFile);
