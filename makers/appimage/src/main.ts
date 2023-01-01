@@ -114,7 +114,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
             Type: "Application",
             Name: productName,
             GenericName: genericName,
-            Exec: `"${binShell}" %U`,
+            Exec: `${bin.includes(" ") ? `"${binShell}"` : bin} %U`,
             Icon: icon ? name : undefined,
             Categories: categories ?
               categories.join(';')+';' :
