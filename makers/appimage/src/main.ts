@@ -88,7 +88,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         runtime: {
           data: nodeFetch(remote+currentTag+'/runtime-'+mapArch(targetArch))
             .then(response => {
-              if(response)
+              if(response.ok)
                 return response.arrayBuffer()
               else
                 throw new Error("AppRun request failure.")
@@ -99,7 +99,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         AppRun: {
           data: nodeFetch(remote+currentTag+'/AppRun-'+mapArch(targetArch))
             .then(response => {
-              if(response)
+              if(response.ok)
                 return response.arrayBuffer()
               else
                 throw new Error("AppRun request failure.")
