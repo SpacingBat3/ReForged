@@ -65,6 +65,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     const name = sanitizeName(this.config.options?.name ?? packageJSON.name as string),
       /** Name of binary, used for shell script generation and `Exec` values. */
       bin = this.config.options?.bin ?? name,
+      binShell = bin.replaceAll(/(?<!\\)"/g,'\\"'),
       /** Human-friendly application name. */
       productName = this.config.options?.productName ?? appName,
       /** A path to application's icon. */
@@ -112,7 +113,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
             Type: "Application",
             Name: productName,
             GenericName: genericName,
-            Exec: bin,
+            Exec: `"${binShell}" %U`,
             Icon: icon ? name : undefined,
             Categories: categories ?
               categories.join(';')+';' :
@@ -124,7 +125,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         /** Shell script used to launch the application. */
         shell: [
           '#!/bin/bash',
-          `exec "\${\${0/\/\/*/\/}%/*/*}/lib/${name}/${bin}" "\${@}"`
+          `exec "\${\${0/\/\/*/\/}%/*/*}/lib/${name}/${binShell}" "\${@}"`
         ].join('\n')
       };
     this.ensureFile(outFile);

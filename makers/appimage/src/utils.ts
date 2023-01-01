@@ -102,7 +102,8 @@ export function generateDesktop(desktopEntry: Partial<Record<string,string|null>
   function toEscapeSeq<T>(string:T): T extends string ? string : T {
     if(typeof string === "string")
       return string
-        .replaceAll("\\","\\\\")
+        .replaceAll(/\\(?!["`trn])/g,"\\\\")
+        .replaceAll("`","\\`")
         .replaceAll("\t", "\\t")
         .replaceAll("\r", "\\r")
         .replaceAll("\n","\\n") as T extends string ? string : T
