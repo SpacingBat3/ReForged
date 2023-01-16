@@ -48,7 +48,6 @@ const supportedAppImageKit = 13;
 /** A URL from which assets will be downloaded. */
 const remote = 'https://github.com/AppImage/AppImageKit/releases/download/';
 
-
 export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerBase<C> {
   defaultPlatforms = ["linux"];
   name = "AppImage";
@@ -127,7 +126,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         shell: [
           '#!/bin/sh',
           // Normalized string to 'usr/' in the AppImage.
-          'USR="$(sed \'s/\\/\\/*/\\//g;s/\\/$//;s/\\/[^/]*\\/[^/]*$//\' <<< "$0")"',
+          'USR="$(echo "$0" | sed \'s/\\/\\/*/\\//g;s/\\/$//;s/\\/[^/]*\\/[^/]*$//\')"',
           // Executes the binary and passes arguments to it.
           `exec "\$USR/lib/${name}/${binShell}" "\$@"`
         ].join('\n')
