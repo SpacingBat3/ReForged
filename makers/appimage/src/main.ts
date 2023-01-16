@@ -18,6 +18,7 @@ import {
 } from "fs/promises";
 
 import MakerBase from "@electron-forge/maker-base";
+import sanitizeName from "@spacingbat3/lss";
 
 import {
   copyPath,
@@ -26,8 +27,7 @@ import {
   mkSquashFs,
   mapArch,
   mapHash,
-  getImageMetadata,
-  sanitizeName
+  getImageMetadata
 } from "./utils"
 import type { MakerAppImageConfig } from "../types/config";
 import type { MakerMeta } from "./utils";

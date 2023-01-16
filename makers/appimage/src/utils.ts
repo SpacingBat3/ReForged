@@ -333,28 +333,3 @@ export function setChecksum(runtime:ArrayBuffer|Buffer,squashfs:Buffer): Buffer 
     post
   ]);
 }
-
-type nullString<T> = T extends null|undefined ? T : string;
-
-export function sanitizeName<T>(name:T, valid="a-z0-9", replacement="-"): nullString<T> {
-  if(name === null || name === undefined)
-    return name as nullString<T>;
-  valid = valid.replaceAll(/([\]^\\])/g,"\\$1");
-  let stringName:string;
-  const regexp = {
-    valid: new RegExp(`[${valid}]`),
-    invalid: new RegExp(`[^${valid}${replacement.replaceAll("]","\\]")}]`,"g")
-  }
-  if(typeof name !== "string")
-    stringName = String(name);
-  else
-    stringName = name;
-  if(regexp.invalid.test(stringName)||stringName.startsWith(replacement))
-    stringName = stringName
-      .toLowerCase()
-      .slice(stringName.search(regexp.valid))
-      .replaceAll(regexp.invalid,replacement)
-  if(stringName.length === 0)
-    throw new Error("Parameter 'name' is not sanitizable!");
-  return stringName as nullString<T>;
-}
