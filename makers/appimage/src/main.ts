@@ -78,7 +78,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     const remote = {
       mirror: process.env["REFORGED_APPIMAGEKIT_MIRROR"] ?? process.env["APPIMAGEKIT_MIRROR"] ?? RemoteDefaults.Mirror,
       dir: process.env["REFORGED_APPIMAGEKIT_CUSTOM_DIR"] ?? process.env["APPIMAGEKIT_CUSTOM_DIR"] ?? RemoteDefaults.Dir,
-      file: process.env["REFORGED_APPIMAGEKIT_CUSTOM_DIR"] ?? process.env["APPIMAGEKIT_CUSTOM_FILENAME"] ?? RemoteDefaults.FileName
+      file: process.env["REFORGED_APPIMAGEKIT_CUSTOM_FILENAME"] ?? process.env["APPIMAGEKIT_CUSTOM_FILENAME"] ?? RemoteDefaults.FileName
     };
     /** Node.js friendly name of the application. */
     const name = sanitizeName(this.config.options?.name ?? packageJSON.name as string),
