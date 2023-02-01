@@ -42,11 +42,15 @@ const nodeFetch = (() => {
   return async (url:string) => (await fetchModule)(url);
 })()
 
-/** Currently supported release of AppImageKit distributables. */
-const supportedAppImageKit = 13;
+const enum RemoteDefaults {
+  /** Default URL from which AppImageKit distributables are downloaded. */
+  Mirror = 'https://github.com/AppImage/AppImageKit/releases/download/',
+  /** Currently supported release of AppImageKit distributables. */
+  Tag = 13,
+  Dir = "{{ version }}",
+  FileName = "{{ filename }}-{{ arch }}",
 
-/** A URL from which assets will be downloaded. */
-const remote = 'https://github.com/AppImage/AppImageKit/releases/download/';
+}
 
 export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerBase<C> {
   defaultPlatforms = ["linux"];
@@ -60,7 +64,23 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
       compressor,
       genericName
     } = (this.config.options ?? {});
-      /** Node.js friendly name of the application. */
+    const appImageArch = mapArch(targetArch);
+    function parseMirror(string:string,version:typeof currentTag,filename:string|null=null) {
+      string = string
+        .replaceAll(/{{ *version *}}/g,`${version}`)
+        .replaceAll(/{{ *arch *}}/g,appImageArch)
+        .replaceAll(/{{ *platform *}}/,targetArch);
+      if(filename !== null)
+        string = string.replaceAll(/{{ *filename *}}/, filename);
+      return string;
+    }
+    /** A URL-like object from which assets will be downloaded. */
+    const remote = {
+      mirror: process.env["REFORGED_APPIMAGEKIT_MIRROR"] ?? process.env["APPIMAGEKIT_MIRROR"] ?? RemoteDefaults.Mirror,
+      dir: process.env["REFORGED_APPIMAGEKIT_CUSTOM_DIR"] ?? process.env["APPIMAGEKIT_CUSTOM_DIR"] ?? RemoteDefaults.Dir,
+      file: process.env["REFORGED_APPIMAGEKIT_CUSTOM_DIR"] ?? process.env["APPIMAGEKIT_CUSTOM_FILENAME"] ?? RemoteDefaults.FileName
+    };
+    /** Node.js friendly name of the application. */
     const name = sanitizeName(this.config.options?.name ?? packageJSON.name as string),
       /** Name of binary, used for shell script generation and `Exec` values. */
       bin = this.config.options?.bin ?? name,
@@ -72,7 +92,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
       /** Resolved path to AppImage output file. */
       outFile = resolve(makeDir, this.name, targetArch, `${productName}-${packageJSON.version}-${targetArch}.AppImage`),
       /** A currently used AppImageKit release. */
-      currentTag = this.config.options?.AppImageKitRelease ?? supportedAppImageKit,
+      currentTag = this.config.options?.AppImageKitRelease ?? RemoteDefaults.Tag,
       /**
        * Detailed information about the source files.
        * 
@@ -85,7 +105,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
       sources = {
         /** Details about the AppImage runtime. */
         runtime: {
-          data: nodeFetch(remote+currentTag+'/runtime-'+mapArch(targetArch))
+          data: nodeFetch(parseMirror(`${remote.mirror}${remote.dir}/${remote.file}`,currentTag,"runtime"))
             .then(response => {
               if(response.ok)
                 return response.arrayBuffer()
@@ -96,7 +116,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         },
         /** Details about AppRun ELF executable, used to start the app. */
         AppRun: {
-          data: nodeFetch(remote+currentTag+'/AppRun-'+mapArch(targetArch))
+          data: nodeFetch(parseMirror(`${remote.mirror}${remote.dir}/${remote.file}`,currentTag,"AppRun"))
             .then(response => {
               if(response.ok)
                 return response.arrayBuffer()
@@ -180,7 +200,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
       sources.AppRun.data
         .then(data => {
           const buffer = Buffer.from(data);
-          if(currentTag === supportedAppImageKit) {
+          if(currentTag === RemoteDefaults.Tag) {
             const hash = createHash("md5")
               .update(buffer)
               .digest('hex');
