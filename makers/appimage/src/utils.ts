@@ -13,7 +13,7 @@ export interface MakerMeta extends MakerOptions {
 }
 
 interface ImageMetadata {
-  type: "PNG"|"SVG"|"XMP";
+  type: "PNG"|"SVG"|"XPM3"|"XPM2";
   width: number|null;
   height: number|null;
 }
@@ -263,8 +263,16 @@ function validateImageMetadata(meta: unknown):meta is ImageMetadata {
   return true;
 }
 
+const enum FileHeader {
+  PNG = 0x58504D20,
+  XPM2 = 0x58504d32,
+  XPM3 = 0x58504D20
+}
+
 /**
  * A function to fetch metadata from buffer in PNG or SVG format.
+ * 
+ * @remarks
  * 
  * For PNGs, it gets required information (like image width or height)
  * from IHDR header (if it is correct according to spec), otherwise it sets
@@ -277,7 +285,7 @@ function validateImageMetadata(meta: unknown):meta is ImageMetadata {
  * SVGs, it looks for existance of `<svg>` tag, for PNGs it looks if file starts
  * from the specific bytes.
  * 
- * @param image PNG/SVG image buffer.
+ * @param image PNG/SVG/XPM image buffer.
  */
 export function getImageMetadata(image:Buffer):ImageMetadata {
   const svgMagic = {
@@ -286,12 +294,16 @@ export function getImageMetadata(image:Buffer):ImageMetadata {
     height: /<svg (?!height).*.height=["']?(\d+)(?:px)?["']?[^>]*>/
   };
   const partialMeta: Partial<ImageMetadata> = {};
-  if(image.toString("hex").startsWith("89504e47"))
+  if(image.readUInt32BE() === FileHeader.PNG)
     partialMeta["type"] = "PNG";
+  else if(image.readUInt32BE(2) === FileHeader.XPM2)
+    partialMeta["type"] = "XPM2";
+  else if(image.readUInt32BE(3) === FileHeader.XPM3)
+    partialMeta["type"] = "XPM3";
   else if(svgMagic.file.test(image.toString("utf8")))
     partialMeta["type"] = "SVG";
   else
-    throw Error("Unsupported image format (FreeDesktop spec expects images only of following MIME type: PNG, SVG and XMP).");
+    throw Error("Unsupported image format (FreeDesktop spec expects images only of following MIME type: PNG, SVG and XPM).");
   switch(partialMeta.type) {
     // Based on specification by W3C: https://www.w3.org/TR/PNG/
     case "PNG": {
@@ -314,6 +326,11 @@ export function getImageMetadata(image:Buffer):ImageMetadata {
       partialMeta["height"] = isNaN(rawMeta["heigth"]) ? null : rawMeta["heigth"];
       break;
     }
+    default:
+      if(typeof partialMeta["type"] === "string")
+        throw new Error(`Not yet supported image format: '${partialMeta["type"]}'.`);
+      else
+        throw new TypeError(`Invalid type of 'partialMeta.type': '${typeof partialMeta["type"]}' (should be 'string')`);
   }
   if(validateImageMetadata(partialMeta))
     return partialMeta;
