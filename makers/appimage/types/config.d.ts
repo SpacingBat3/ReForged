@@ -58,9 +58,12 @@ interface MakerAppImageConfigOptions {
     /**
      * Whenever calculate and embed MD5 digest in the runtime.
      * 
-     * Defaults to `true`.
+     * Currently functions as a placeholder for future API – **NO-OP**.
+     * 
+     * @internal
+     * @experimental
      */
-    //digestMd5?: boolean,
+    digestMd5?: boolean,
     /**
      * Use given compressor for SquashFS filesystem.
      * 
@@ -73,7 +76,7 @@ interface MakerAppImageConfigOptions {
      * 
      * Defaults to `13`.
      */
-    AppImageKitRelease?: number | "continuous"
+    AppImageKitRelease?: number | `${number}` | "continuous"
 }
 
 export interface MakerAppImageConfig {
@@ -86,6 +89,7 @@ export interface MakerAppImageConfig {
 /**
  * FreeDesktop software categories, grouped as in FreeDesktop specification.
  * 
+ * @privateRemarks
  * 
  * Generated using DevTools with:
  * ```js
@@ -109,7 +113,7 @@ export interface MakerAppImageConfig {
     additional: (
         "Building" | "Debugger" | "IDE" | "GUIDesigner" | "Profiling" |
         "RevisionControl" | "Translation" | "Calendar" | "Database" |
-        "Dictionary" | "Chart" | "Email" | "Finance" | "FlowChart" | "PDA" |
+        "Dictionary" | "Email" | "Finance" | `${"Flow"|""}Chart` | "PDA" |
         "Presentation" | "Spreadsheet" | "WordProcessor" | "Scanning" | "OCR" |
         "Photography" | `${"Contact"|"Project"}Management` |
         `${"2D"|"3D"|"Vector"|"Raster"}Graphics` | "Publishing" | "Viewer" |
