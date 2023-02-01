@@ -69,7 +69,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
       string = string
         .replaceAll(/{{ *version *}}/g,`${version}`)
         .replaceAll(/{{ *arch *}}/g,appImageArch)
-        .replaceAll(/{{ *platform *}}/,targetArch);
+        .replaceAll(/{{ *node.arch *}}/g,targetArch);
       if(filename !== null)
         string = string.replaceAll(/{{ *filename *}}/, filename);
       return string;
