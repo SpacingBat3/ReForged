@@ -1,9 +1,12 @@
+<div align="center">
+
+[![ReForged-Icon](https://user-images.githubusercontent.com/57194920/216467704-7c58cf06-ad8d-43ce-ac5f-61c4a06c4d57.png)](https://github.com/SpacingBat3/ReForged#readme)
+
 # ReForged
 
 A set of [Electron Forge][forge] tools, makers and publishers.
 
-It both includes makers not being available in Electron Forge and my own
-reimplementations of some already being present in Electron Forge.
+</div>
 
 ## Status
 
