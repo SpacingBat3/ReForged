@@ -51,5 +51,5 @@ This project is distributed under terms of [ISC license](./LICENSE):
 
 (Note: the above text should be treated as a preview, not the actual software license)
 
-[forge]: https://github.com/electron-userland/electron-forge
+[forge]: https://github.com/electron/forge
 [maker1]: https://www.npmjs.com/package/@reforged/maker-appimage
