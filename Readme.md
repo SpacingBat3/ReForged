@@ -1,6 +1,6 @@
 <div align="center">
 
-[![ReForged-Icon](https://user-images.githubusercontent.com/57194920/216467704-7c58cf06-ad8d-43ce-ac5f-61c4a06c4d57.png)](https://github.com/SpacingBat3/ReForged#readme)
+[![ReForged Icon](https://user-images.githubusercontent.com/57194920/216773020-10a50af0-91f2-4956-9598-c10a3f61a355.svg)](https://github.com/SpacingBat3/ReForged#readme)
 
 # ReForged
 
