@@ -264,7 +264,7 @@ function validateImageMetadata(meta: unknown):meta is ImageMetadata {
 }
 
 const enum FileHeader {
-  PNG = 0x58504D20,
+  PNG = 0x89504e47,
   XPM2 = 0x58504d32,
   XPM3 = 0x58504D20
 }
