@@ -71,7 +71,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         .replaceAll(/{{ *arch *}}/g,appImageArch)
         .replaceAll(/{{ *node.arch *}}/g,targetArch);
       if(filename !== null)
-        string = string.replaceAll(/{{ *filename *}}/, filename);
+        string = string.replaceAll(/{{ *filename *}}/g, filename);
       return string;
     }
     /** A URL-like object from which assets will be downloaded. */
