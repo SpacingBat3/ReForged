@@ -5,7 +5,8 @@
     "noEmit": true
   },
   "references": [
-    {"path": "makers/appimage/tsconfig.json"}
+    {"path": "makers/appimage/tsconfig.json"},
+    {"path": "example/tsconfig.json"}
   ],
   "files": []
 }

@@ -20,7 +20,8 @@
     "typescript": "^5.0.2"
   },
   "workspaces": [
-    "makers/*/"
+    "makers/*/",
+    "example",
   ],
   "private": true,
   "engines": {

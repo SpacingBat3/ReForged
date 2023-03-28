@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "../cache/tsc/example.json",
+    "rootDir": "./",
+    "declarationMap": false,
+    "sourceMap": false,
+    "verbatimModuleSyntax": true
+  },
+  "files": [
+    "src/index.ts",
+    "forge.config.ts"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "@reforged/example-app",
+  "productName": "Example Application",
+  "version": "1.0.0",
+  "description": "Electron application that uses ReForged makers.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "tsc && electron-forge start",
+    "package": "tsc && electron-forge package",
+    "make": "tsc && electron-forge make",
+    "publish": "tsc && electron-forge publish",
+    "lint": "echo \"No linting configured\""
+  },
+  "author": {
+    "name": "SpacingBat3",
+    "email": "git@spacingbat3.anonaddy.com"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.0"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.5",
+    "@reforged/maker-appimage": "file:../makers/appimage",
+    "electron": "23.2.0"
+  }
+}
