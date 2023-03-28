@@ -37,7 +37,7 @@ import type { MakerMeta } from "./utils";
  */
 const nodeFetch = (() => {
   const fetchModule = import("node-fetch").then(fetch => fetch.default);
-  if((globalThis as {fetch?:Awaited<typeof fetchModule>}).fetch !== undefined)
+  if((globalThis as unknown as {fetch?:Awaited<typeof fetchModule>}).fetch !== undefined)
     return (url:string)=>(globalThis as unknown as {fetch:Awaited<typeof fetchModule>}).fetch(url)
   return async (url:string) => (await fetchModule)(url);
 })()
@@ -210,10 +210,10 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
           return writeFile(resolve(workDir, 'AppRun'), buffer, {mode: 0o755});
         }),
       // Save icon to file and symlink it as `.DirIcon` (5)
-      icon && iconPath && existsSync(icon) ?
+      icon ? iconPath && existsSync(icon) ?
         copyFile(icon, iconPath)
           .then(() => symlink(relative(workDir, iconPath), resolve(workDir, ".DirIcon"), 'file'))
-        : Promise.reject(Error("Invalid icon / icon path.")),
+        : Promise.reject(Error("Invalid icon / icon path.")) : Promise.resolve(),
     ] as const;
     const lateJobs = [
       // Write shell script to file
