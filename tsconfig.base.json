@@ -1,5 +1,5 @@
 {
-  "extends": "./node_modules/@tsconfig/node16-strictest/tsconfig.json",
+  "extends": "./node_modules/@tsconfig/strictest/tsconfig.json",
   "compilerOptions": {
     "composite": true,
     "incremental": true,
@@ -9,6 +9,7 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "stripInternal": true
+    "stripInternal": true,
+    "verbatimModuleSyntax": false
   }
 }
