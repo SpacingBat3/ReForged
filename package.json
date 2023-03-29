@@ -3,7 +3,8 @@
   "version": "0.0.0-undefined",
   "description": "A set of Electron Forge tools, makers and publishers (project package).",
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b",
+    "docs": "typedoc"
   },
   "repository": {
     "type": "git",
