@@ -17,11 +17,12 @@
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.0",
     "@types/node": "^18.11.17",
+    "typedoc": "^0.23.28",
     "typescript": "^5.0.2"
   },
   "workspaces": [
     "makers/*/",
-    "example",
+    "example"
   ],
   "private": true,
   "engines": {

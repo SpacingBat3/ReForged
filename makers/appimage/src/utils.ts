@@ -5,7 +5,7 @@ import type { Mode } from "fs";
 import type { MakerOptions } from "@electron-forge/maker-base"
 
 type AppImageArch = "x86_64"|"aarch64"|"armhf"|"i686";
-type ForgeArch = "x64" | "arm64" | "armv7l" | "ia32" | "mips64el" | "universal";
+export type ForgeArch = "x64" | "arm64" | "armv7l" | "ia32" | "mips64el" | "universal";
 type ModeFunction = (source:string,destination:string) => Mode|Promise<Mode>;
 
 export interface MakerMeta extends MakerOptions {

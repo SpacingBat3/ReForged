@@ -29,8 +29,10 @@ import {
   mapHash,
   getImageMetadata
 } from "./utils"
-import type { MakerAppImageConfig } from "../types/config";
+
+import type MakerAppImageConfig from "../types/config";
 import type { MakerMeta } from "./utils";
+
 /**
  * A fetch-alike implementation used in this module, will be native API if
  * present or otherwise `node-fetch`.
@@ -277,6 +279,16 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
   }
 }
 export {
-  MakerAppImage,
-  MakerAppImageConfig
+  MakerAppImage
 };
+
+export type {
+  MakerAppImageConfig,
+  MakerAppImageConfigOptions,
+  FreeDesktopCategories
+} from "../types/config";
+
+export type {
+  ForgeArch,
+  MakerMeta
+} from "./utils";

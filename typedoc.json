@@ -1,0 +1,21 @@
+{
+  "githubPages": true,
+  "hideGenerator": true,
+  "entryPointStrategy": "packages",
+  "entryPoints": [
+    "./makers/appimage"
+  ],
+  "commentStyle": "jsdoc",
+  "visibilityFilters": {},
+  "lightHighlightTheme": "github-light",
+  "darkHighlightTheme": "github-dark",
+  "gitRevision": "master",
+  "excludeNotDocumented": false,
+  "excludeInternal": false,
+  "excludeExternals": false,
+  "excludePrivate": true,
+  "intentionallyNotExported": [],
+  "readme": "./Readme.md",
+  "name": "ReForged",
+  "theme": "default"
+}

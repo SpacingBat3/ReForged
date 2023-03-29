@@ -1,4 +1,4 @@
-interface MakerAppImageConfigOptions {
+export interface MakerAppImageConfigOptions {
     /**
      * Name of the package (used as folder name, `X-AppImage-Name` etc).
      * It should contain only lowercase letters and hypens. It should also start
@@ -99,7 +99,7 @@ export interface MakerAppImageConfig {
  * console.log(out.join(' | '));
  * ```
  */
- interface FreeDesktopCategories {
+ export interface FreeDesktopCategories {
     /** Categories that every desktop confirming enviroment **must** support. */
     main: (
         "AudioVideo" | "Audio" | "Video" | "Development" | "Education" |
@@ -139,3 +139,5 @@ export interface MakerAppImageConfig {
         "Qt" | "Motif" | "Java" | "ConsoleOnly"
     );
 }
+
+export default MakerAppImageConfig;

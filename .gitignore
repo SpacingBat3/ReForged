@@ -12,3 +12,5 @@ makers/*/types/*
 !package-lock.json
 # Ignore local packages
 *.tgz
+# Ignore typedoc files
+docs/
