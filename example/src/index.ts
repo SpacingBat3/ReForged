@@ -1,5 +1,10 @@
-import { app, BrowserWindow } from 'electron';
-import * as path from 'node:path';
+import Electron = require('electron');
+import path = require('node:path');
+
+const {
+  BrowserWindow,
+  app
+} = Electron;
 
 function createWindow() {
   // Create the browser window.
@@ -23,10 +28,13 @@ function createWindow() {
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
 
   // Deny all requests (to permissions / devices).
-  mainWindow.webContents.session.setPermissionCheckHandler(() => false);
-  mainWindow.webContents.session.setPermissionRequestHandler(() => false);
-  mainWindow.webContents.session.setDevicePermissionHandler(() => false);
-  mainWindow.webContents.session.setBluetoothPairingHandler(() => false);
+  {
+    const reject = () => false, { session } = mainWindow.webContents;
+    session.setPermissionCheckHandler(reject);
+    session.setPermissionRequestHandler(reject);
+    session.setDevicePermissionHandler(reject);
+    session.setBluetoothPairingHandler(reject);
+  }
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();

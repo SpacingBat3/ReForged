@@ -15,7 +15,7 @@
     "name": "SpacingBat3",
     "email": "git@spacingbat3.anonaddy.com"
   },
-  "license": "MIT",
+  "license": "ISC",
   "dependencies": {
     "electron-squirrel-startup": "^1.0.0"
   },
@@ -23,5 +23,6 @@
     "@electron-forge/cli": "^6.0.5",
     "@reforged/maker-appimage": "file:../makers/appimage",
     "electron": "23.2.0"
-  }
+  },
+  "private": true
 }
