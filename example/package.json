@@ -22,7 +22,7 @@
   "devDependencies": {
     "@electron-forge/cli": "^6.0.5",
     "@reforged/maker-appimage": "file:../makers/appimage",
-    "electron": "23.2.0"
+    "electron": "latest"
   },
   "private": true
 }
