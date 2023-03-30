@@ -157,9 +157,9 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     // Verify if there's a `bin` file in packaged application.
     if(!existsSync(resolve(dir, bin)))
       throw new Error([
-        `Could not find executable '${bin}' in packaged application`,
-        "Make sure 'packagerConfig.execName' in Forge configuration or",
-        "'options.bin' in this maker are pointing to valid file."
+        `Could not find executable '${bin}' in packaged application.`,
+        "Make sure 'packagerConfig.executableName' or 'config.options.bin'",
+        "in Forge config are pointing to valid file."
       ].join(" "));
     /** A temporary directory used for the packaging. */
     const workDir = mkdtempSync(resolve(tmpdir(), `.${productName}-${packageJSON.version}-${targetArch}-`));
@@ -259,7 +259,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     await new Promise((resolve, reject) => {
       mkdir(dirname(outFile), {recursive: true}).then(() => {
         mkSquashFs(...mkSquashFsArgs)
-        .once("close", () => resolve(undefined))
+        .once("close", (code) => code !== 0 ? reject(new Error("mksquashfs returned non-zero code: `${code}`")) : resolve(undefined))
         .once("error", (error) => reject(error));
       }).catch(error => reject(error));
     });

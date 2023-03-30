@@ -1,7 +1,7 @@
 import EventEmitter from "events";
 import { createHash, getHashes } from "crypto";
 
-import type { Mode } from "fs";
+import { Mode, existsSync } from "fs";
 import type { MakerOptions } from "@electron-forge/maker-base"
 
 type AppImageArch = "x86_64"|"aarch64"|"armhf"|"i686";
@@ -202,8 +202,10 @@ export async function joinFiles(...filesAndBuffers:(string|Buffer)[]) {
   for(const path of filesAndBuffers)
     if(Buffer.isBuffer(path))
       bufferArray.push(Promise.resolve(path));
-    else
+    else if (existsSync(path))
       bufferArray.push(readFile(path));
+    else
+      throw new Error(`Unable to concat '${path}': Invalid path.`);
   return Promise.all(bufferArray).then(array => Buffer.concat(array))
 }
 
