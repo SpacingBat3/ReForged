@@ -23,7 +23,8 @@
   "dependencies": {
     "@electron-forge/maker-base": "^6.0.4",
     "@spacingbat3/lss": "^1.0.0",
-    "node-fetch": "^3.2.5"
+    "node-fetch": "^3.2.5",
+    "semver": "^7.3.8"
   },
   "types": "./types/main.d.ts",
   "publishConfig": {

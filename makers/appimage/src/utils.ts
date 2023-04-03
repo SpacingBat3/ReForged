@@ -1,7 +1,10 @@
 import EventEmitter from "events";
 import { createHash, getHashes } from "crypto";
-
 import { Mode, existsSync } from "fs";
+import { spawnSync } from "child_process";
+
+import { SemVer } from "semver";
+
 import type { MakerOptions } from "@electron-forge/maker-base"
 
 type AppImageArch = "x86_64"|"aarch64"|"armhf"|"i686";
@@ -192,6 +195,19 @@ export function mkSquashFs(...squashfsOptions:string[]) {
     });
   return event;
 }
+
+export const mkSquashFsVer = (() => {
+  /** First line of the output, which should contain version of the program. */
+  const output = spawnSync("mksquashfs",["-version"]).stdout.toString()
+    .split('\n')[0];
+  if(output === undefined)
+    throw new TypeError("Unable to parse '-version': first line read error.");
+  /** A part of the string which includes the dot-separated version of the program. */
+  const strVer = /(?<=version )[0-9.]+/.exec(output)?.[0];
+  if(strVer === undefined)
+    throw new TypeError("Unable to parse '-version': number not found.");
+  return new SemVer(strVer,true);
+})()
 
 /**
  * Concatenates files and/or buffers into single buffer.
