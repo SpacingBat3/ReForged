@@ -3,7 +3,7 @@ import { createHash, getHashes } from "crypto";
 import { Mode, existsSync } from "fs";
 import { spawnSync } from "child_process";
 
-import { SemVer } from "semver";
+import { coerce } from "semver";
 
 import type { MakerOptions } from "@electron-forge/maker-base"
 
@@ -206,8 +206,11 @@ export const mkSquashFsVer = (() => {
   const strVer = /(?<=version )[0-9.]+/.exec(output)?.[0];
   if(strVer === undefined)
     throw new TypeError("Unable to parse '-version': number not found.");
-  return new SemVer(strVer,true);
-})()
+  const semStr = coerce(strVer);
+  if(semStr === null)
+    throw new Error(`Unable to coerce string '${strVer}' to SemVer.`);
+  return semStr;
+})();
 
 /**
  * Concatenates files and/or buffers into single buffer.
