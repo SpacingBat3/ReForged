@@ -56,10 +56,10 @@ const enum RemoteDefaults {
 }
 
 export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerBase<C> {
-  defaultPlatforms = ["linux"];
-  name = "AppImage";
-  override isSupportedOnCurrentPlatform = () => true;
-  override requiredExternalBinaries = ["mksquashfs"];
+  defaultPlatforms:["linux"] = ["linux"];
+  name = "AppImage" as const;
+  override requiredExternalBinaries:["mksquashfs"] = ["mksquashfs"];
+  override isSupportedOnCurrentPlatform:()=>true = ()=>true;
   override async make({appName,dir,makeDir,packageJSON,targetArch}: MakerMeta) {
     const {
       actions,
