@@ -14,7 +14,6 @@
   "excludeInternal": false,
   "excludeExternals": false,
   "excludePrivate": true,
-  "intentionallyNotExported": [],
   "readme": "./Readme.md",
   "name": "ReForged",
   "theme": "default"
