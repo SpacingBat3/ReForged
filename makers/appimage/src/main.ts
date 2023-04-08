@@ -239,13 +239,13 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     // Run `mksquashfs` and wait for it to finish
     const mkSquashFsArgs = [workDir, outFile];
     // -noappend is supported since 1.2+
-    if(mkSquashFsVer.compare("1.2.0") != -1)
+    if((await mkSquashFsVer).compare("1.2.0") != -1)
       mkSquashFsArgs.push("-noappend");
     // -all-root is supported since 2.0+
-    if(mkSquashFsVer.compare("2.0.0") != -1)
+    if((await mkSquashFsVer).compare("2.0.0") != -1)
       mkSquashFsArgs.push("-all-root");
     // -all-time and -mkfs-time is supported since 4.4+
-    if(mkSquashFsVer.compare("4.4.0") != -1)
+    if((await mkSquashFsVer).compare("4.4.0") != -1)
       mkSquashFsArgs.push("-all-time", "0", "-mkfs-time", "0");
     // Set compressor options if available
     if(compressor)

@@ -196,7 +196,7 @@ export function mkSquashFs(...squashfsOptions:string[]) {
   return event;
 }
 
-export const mkSquashFsVer = (() => {
+export const mkSquashFsVer = (async () => {
   /** First line of the output, which should contain version of the program. */
   const output = spawnSync("mksquashfs",["-version"]).stdout.toString()
     .split('\n')[0];
