@@ -196,7 +196,7 @@ export function mkSquashFs(...squashfsOptions:string[]) {
   return event;
 }
 
-export const mkSquashFsVer = (async () => {
+export function getSquashFsVer() {
   /** First line of the output, which should contain version of the program. */
   const output = spawnSync("mksquashfs",["-version"]).stdout.toString()
     .split('\n')[0];
@@ -210,7 +210,7 @@ export const mkSquashFsVer = (async () => {
   if(semStr === null)
     throw new Error(`Unable to coerce string '${strVer}' to SemVer.`);
   return semStr;
-})();
+};
 
 /**
  * Concatenates files and/or buffers into single buffer.

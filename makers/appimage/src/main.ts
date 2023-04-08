@@ -28,7 +28,7 @@ import {
   mapArch,
   mapHash,
   getImageMetadata,
-  mkSquashFsVer
+  getSquashFsVer
 } from "./utils"
 
 import type MakerAppImageConfig from "../types/config";
@@ -238,15 +238,21 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     await(Promise.all([...earlyJobs,...lateJobs]));
     // Run `mksquashfs` and wait for it to finish
     const mkSquashFsArgs = [workDir, outFile];
-    // -noappend is supported since 1.2+
-    if((await mkSquashFsVer).compare("1.2.0") != -1)
+    optArgs: {
+      const mkSquashFsVer = getSquashFsVer();
+      // -noappend is supported since 1.2+
+      if(mkSquashFsVer.compare("1.2.0") === -1)
+        break optArgs;
       mkSquashFsArgs.push("-noappend");
-    // -all-root is supported since 2.0+
-    if((await mkSquashFsVer).compare("2.0.0") != -1)
+      // -all-root is supported since 2.0+
+      if(mkSquashFsVer.compare("2.0.0") === -1)
+        break optArgs;
       mkSquashFsArgs.push("-all-root");
-    // -all-time and -mkfs-time is supported since 4.4+
-    if((await mkSquashFsVer).compare("4.4.0") != -1)
+      // -all-time and -mkfs-time is supported since 4.4+
+      if(mkSquashFsVer.compare("4.4.0") === -1)
+        break optArgs;
       mkSquashFsArgs.push("-all-time", "0", "-mkfs-time", "0");
+    }
     // Set compressor options if available
     if(compressor)
       mkSquashFsArgs.push("-comp", compressor);
