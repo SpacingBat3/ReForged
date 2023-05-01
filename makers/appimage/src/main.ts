@@ -84,76 +84,76 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
       file: process.env["REFORGED_APPIMAGEKIT_CUSTOM_FILENAME"] ?? process.env["APPIMAGEKIT_CUSTOM_FILENAME"] ?? RemoteDefaults.FileName
     };
     /** Node.js friendly name of the application. */
-    const name = sanitizeName(this.config.options?.name ?? packageJSON.name as string),
-      /** Name of binary, used for shell script generation and `Exec` values. */
-      bin = this.config.options?.bin ?? name,
-      binShell = bin.replaceAll(/(?<!\\)"/g,'\\"'),
-      /** Human-friendly application name. */
-      productName = this.config.options?.productName ?? appName,
-      /** A path to application's icon. */
-      icon = this.config?.options?.icon ?? null,
-      /** Resolved path to AppImage output file. */
-      outFile = resolve(makeDir, this.name, targetArch, `${productName}-${packageJSON.version}-${targetArch}.AppImage`),
-      /** A currently used AppImageKit release. */
-      currentTag = this.config.options?.AppImageKitRelease ?? RemoteDefaults.Tag,
-      /**
-       * Detailed information about the source files.
-       * 
-       * As of remote content, objects contain the data in form of
-       * ArrayBuffers (which are then allocated to Buffers,
-       * checksum-verified and saved as regular files). The text-based
-       * generated content is however saved in form of the string (UTF-8
-       * encoded, with LF endings).
-       */
-      sources = {
-        /** Details about the AppImage runtime. */
-        runtime: {
-          data: nodeFetch(parseMirror(`${remote.mirror}${remote.dir}/${remote.file}`,currentTag,"runtime"))
-            .then(response => {
-              if(response.ok)
-                return response.arrayBuffer()
-              else
-                throw new Error("AppRun request failure.")
-            }),
-          md5: mapHash.runtime[mapArch(targetArch)]
-        },
-        /** Details about AppRun ELF executable, used to start the app. */
-        AppRun: {
-          data: nodeFetch(parseMirror(`${remote.mirror}${remote.dir}/${remote.file}`,currentTag,"AppRun"))
-            .then(response => {
-              if(response.ok)
-                return response.arrayBuffer()
-              else
-                throw new Error("AppRun request failure.")
-            }),
-          md5: mapHash.AppRun[mapArch(targetArch)]
-        },
-        /** Details about the generated `.desktop` file. */
-        desktop: typeof this.config.options?.desktopFile === "string" ?
-          readFile(this.config.options.desktopFile, "utf-8") :
-          Promise.resolve(generateDesktop({
-            Version: "1.5",
-            Type: "Application",
-            Name: productName,
-            GenericName: genericName,
-            Exec: `${bin.includes(" ") ? `"${binShell}"` : bin} %U`,
-            Icon: icon ? name : undefined,
-            Categories: categories ?
-              categories.join(';')+';' :
-              undefined,
-            "X-AppImage-Name": name,
-            "X-AppImage-Version": packageJSON.version,
-            "X-AppImage-Arch": mapArch(targetArch)
-          }, actions)),
-        /** Shell script used to launch the application. */
-        shell: [
-          '#!/bin/sh',
-          // Normalized string to 'usr/' in the AppImage.
-          'USR="$(echo "$0" | sed \'s/\\/\\/*/\\//g;s/\\/$//;s/\\/[^/]*\\/[^/]*$//\')"',
-          // Executes the binary and passes arguments to it.
-          `exec "\$USR/lib/${name}/${binShell}" "\$@"`
-        ].join('\n')
-      };
+    const name = sanitizeName(this.config.options?.name ?? packageJSON.name as string);
+    /** Name of binary, used for shell script generation and `Exec` values. */
+    const bin = this.config.options?.bin ?? name;
+    const binShell = bin.replaceAll(/(?<!\\)"/g,'\\"');
+    /** Human-friendly application name. */
+    const productName = this.config.options?.productName ?? appName;
+    /** A path to application's icon. */
+    const icon = this.config?.options?.icon ?? null;
+    /** Resolved path to AppImage output file. */
+    const outFile = resolve(makeDir, this.name, targetArch, `${productName}-${packageJSON.version}-${targetArch}.AppImage`);
+    /** A currently used AppImageKit release. */
+    const currentTag = this.config.options?.AppImageKitRelease ?? RemoteDefaults.Tag;
+    /**
+     * Detailed information about the source files.
+     * 
+     * As of remote content, objects contain the data in form of
+     * ArrayBuffers (which are then allocated to Buffers,
+     * checksum-verified and saved as regular files). The text-based
+     * generated content is however saved in form of the string (UTF-8
+     * encoded, with LF endings).
+     */
+    const sources = Object.freeze({
+      /** Details about the AppImage runtime. */
+      runtime: Object.freeze({
+        data: nodeFetch(parseMirror(`${remote.mirror}${remote.dir}/${remote.file}`,currentTag,"runtime"))
+          .then(response => {
+            if(response.ok)
+              return response.arrayBuffer()
+            else
+              throw new Error("AppRun request failure.")
+          }),
+        md5: mapHash.runtime[mapArch(targetArch)]
+      }),
+      /** Details about AppRun ELF executable, used to start the app. */
+      AppRun: Object.freeze({
+        data: nodeFetch(parseMirror(`${remote.mirror}${remote.dir}/${remote.file}`,currentTag,"AppRun"))
+          .then(response => {
+            if(response.ok)
+              return response.arrayBuffer()
+            else
+              throw new Error("AppRun request failure.")
+          }),
+        md5: mapHash.AppRun[mapArch(targetArch)]
+      }),
+      /** Details about the generated `.desktop` file. */
+      desktop: typeof this.config.options?.desktopFile === "string" ?
+        readFile(this.config.options.desktopFile, "utf-8") :
+        Promise.resolve(generateDesktop({
+          Version: "1.5",
+          Type: "Application",
+          Name: productName,
+          GenericName: genericName,
+          Exec: `${bin.includes(" ") ? `"${binShell}"` : bin} %U`,
+          Icon: icon ? name : undefined,
+          Categories: categories ?
+            categories.join(';')+';' :
+            undefined,
+          "X-AppImage-Name": name,
+          "X-AppImage-Version": packageJSON.version,
+          "X-AppImage-Arch": mapArch(targetArch)
+        }, actions)),
+      /** Shell script used to launch the application. */
+      shell: [
+        '#!/bin/sh -e',
+        // Normalized string to 'usr/' in the AppImage.
+        'USR="$(echo "$0" | sed \'s/\\/\\/*/\\//g;s/\\/$//;s/\\/[^/]*\\/[^/]*$//\')"',
+        // Executes the binary and passes arguments to it.
+        `exec "\$USR/lib/${name}/${binShell}" "\$@"`
+      ].join('\n')
+    });
     this.ensureFile(outFile);
     // Verify if there's a `bin` file in packaged application.
     if(!existsSync(resolve(dir, bin)))
