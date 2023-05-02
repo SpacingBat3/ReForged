@@ -83,7 +83,7 @@ export interface MakerAppImageConfigOptions {
      * Electron binary by the shell script. This should be compatible with the
      * file format described in [this Arch Wiki section][wiki].
      * 
-     * [wiki]: https://wiki.archlinux.org/title/Chromium#Making_flags_persistent
+     * [wiki]: https://wiki.archlinux.org/index.php?title=Chromium&oldid=776126#Making_flags_persistent
      */
     flagsFile?: boolean
 }
