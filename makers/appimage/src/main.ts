@@ -65,7 +65,8 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
       actions,
       categories,
       compressor,
-      genericName
+      genericName,
+      flagsFile
     } = (this.config.options ?? {});
     const appImageArch = mapArch(targetArch);
     function parseMirror(string:string,version:typeof currentTag,filename:string|null=null) {
@@ -151,9 +152,21 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         // Normalized string to 'usr/' in the AppImage.
         'USR="$(echo "$0" | sed \'s/\\/\\/*/\\//g;s/\\/$//;s/\\/[^/]*\\/[^/]*$//\')"',
         // Executes the binary and passes arguments to it.
-        `exec "\$USR/lib/${name}/${binShell}" "\$@"`
-      ].join('\n')
+        `exec "$USR/lib/${name}/${binShell}" "$@"`
+      ]
     });
+    if(flagsFile) {
+      sources.shell.pop();
+      sources.shell.push(
+        'ARGV=\'\'',
+        'for arg in "$@"; do',
+        '\tARGV="$ARGV${ARGV:+ }$(echo "$arg" | sed \'s~\\\\~\\\\\\\\~g;s~"~"\\\\""~g;s~^\\(.*\\)$~"\\1"~g\')"',
+        'done',
+        `CFG="\${XDG_CONFIG_HOME:-"\${HOME:-/home/"$USER"}/.config"}/${name}-flags.conf"`,
+        'if [ -f "$CFG" ]; then ARGV="$(cat "$CFG" | sed \'s~^\\s*#.*$~~g\') $ARGV"; fi',
+        `echo "$ARGV" | exec xargs "$USR/lib/${name}/${binShell}"`
+      )
+    }
     this.ensureFile(outFile);
     // Verify if there's a `bin` file in packaged application.
     if(!existsSync(resolve(dir, bin)))
@@ -221,7 +234,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     const lateJobs = [
       // Write shell script to file
       earlyJobs[1]
-        .then(() => writeFile(resolve(directories.bin, bin),sources.shell, {mode: 0o755})),
+        .then(() => writeFile(resolve(directories.bin, bin),sources.shell.join('\n'), {mode: 0o755})),
       // Copy Electron app to AppImage directories
       earlyJobs[0]
         .then(() => copyPath(dir, directories.data, 0o755)),

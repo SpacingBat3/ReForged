@@ -76,7 +76,16 @@ export interface MakerAppImageConfigOptions {
      * 
      * Defaults to `13`.
      */
-    AppImageKitRelease?: number | `${number}` | "continuous"
+    AppImageKitRelease?: number | `${number}` | "continuous",
+    /**
+     * Whenever to emulate support for Arch Linux `{name}-flags.conf` file,
+     * which contains additional flags prependeded to ARGV when executing
+     * Electron binary by the shell script. This should be compatible with the
+     * file format described in [this Arch Wiki section][wiki].
+     * 
+     * [wiki]: https://wiki.archlinux.org/title/Chromium#Making_flags_persistent
+     */
+    flagsFile?: boolean
 }
 
 export interface MakerAppImageConfig {
