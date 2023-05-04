@@ -11,7 +11,7 @@
   "darkHighlightTheme": "github-dark",
   "gitRevision": "master",
   "excludeNotDocumented": false,
-  "excludeInternal": false,
+  "excludeInternal": true,
   "excludeExternals": false,
   "excludePrivate": true,
   "readme": "./Readme.md",
