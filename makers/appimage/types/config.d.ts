@@ -11,6 +11,9 @@ export interface MakerAppImageConfigOptions {
      * their own.
      * 
      * Defaults to sanitized `packageJSON.name`.
+     * 
+     * @since v1.0.0
+     * 
      */
     name?: string,
     /**
@@ -24,24 +27,34 @@ export interface MakerAppImageConfigOptions {
      * Human-friendly name of the application.
      * 
      * Defaults to `packageJSON.productName`.
+     * 
+     * @since v1.0.0
      */
     productName?: string,
     /**
      * Generic name of the application used in `.desktop` file.
+     * 
+     * @since v1.0.0
      */
     genericName?: string,
     /**
      * Path to icon to use for the AppImage.
+     * 
+     * @since v1.0.0
      */
     icon?: string,
     /**
      * List of dekstop file categories to append.
+     * 
+     * @since v1.0.0
      */
     categories?: (
         FreeDesktopCategories["main"] | FreeDesktopCategories["additional"]
     )[],
     /**
      * Actions to be used within a generated desktop file.
+     * 
+     * @since v2.1.0
      */
     actions?: Record<string, Partial<Record<string,string|null>> & {
         /** Action's user-friendly name */
@@ -53,6 +66,8 @@ export interface MakerAppImageConfigOptions {
     }>
     /**
      * Path to desktop file to be used instead of generating a new one.
+     * 
+     * @since v2.1.0
      */
     desktopFile?: string,
     /**
@@ -68,6 +83,8 @@ export interface MakerAppImageConfigOptions {
      * Use given compressor for SquashFS filesystem.
      * 
      * Defaults to `mksquasfs` binary defaults (usually `gzip`).
+     * 
+     * @since v2.1.0
      */
     compressor?: "xz"|"gzip"|"lz4"|"lzo"|"zstd"|"lzma"
     /**
@@ -75,6 +92,8 @@ export interface MakerAppImageConfigOptions {
      * get the runtime and AppRun executable. 
      * 
      * Defaults to `13`.
+     * 
+     * @since v1.1.0
      */
     AppImageKitRelease?: number | `${number}` | "continuous",
     /**
@@ -91,6 +110,8 @@ export interface MakerAppImageConfigOptions {
 export interface MakerAppImageConfig {
     /**
      * AppImage maker configuration options.
+     * 
+     * @since v1.0.0
      */
     options?: MakerAppImageConfigOptions
 }
