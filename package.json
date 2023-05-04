@@ -19,7 +19,7 @@
     "@tsconfig/strictest": "^2.0.0",
     "@types/node": "^18.11.17",
     "@types/semver": "^7.3.13",
-    "typedoc": "^0.23.28",
+    "typedoc": "^0.24.6",
     "typescript": "^5.0.2"
   },
   "workspaces": [
