@@ -1,7 +1,7 @@
 import EventEmitter from "events";
 import { createHash, getHashes } from "crypto";
 import { Mode, existsSync } from "fs";
-import { spawnSync } from "child_process";
+import { execFileSync } from "child_process";
 
 import { coerce } from "semver";
 
@@ -173,33 +173,42 @@ export async function copyPath(source:string, destination:string, dirmode: Mode|
  */
 export function mkSquashFs(...squashfsOptions:string[]) {
   const event:mkSquashFsEvent = new EventEmitter();
-  import("child_process").then(child => child.spawn)
-    .then(spawn => {
-      const mkSquashFS = spawn("mksquashfs", squashfsOptions);
+  import("child_process").then(child => child.execFile)
+    .then(execFile => {
+      const mkSquashFS = execFile("mksquashfs", squashfsOptions, {
+        windowsHide: true
+      });
       let lastProgress = 0;
-      mkSquashFS.stdout.on("data", (chunk) => {
-        if(Buffer.isBuffer(chunk)) {
-          const message = chunk.toString();
-          const progress = message.match(/\] [0-9/]+ ([0-9]+)%/)?.[1];
-          if(progress !== undefined) {
-            const progInt = Number(progress);
-
-            if(progInt >= 0 && progInt <= 100 &&
-              progInt !== lastProgress && event.emit("progress", progInt/100))
-                lastProgress = progInt;
-          }
+      mkSquashFS.on("message", (chunk) => {
+        const message = chunk.toString();
+        const progress = message.match(/\] [0-9/]+ ([0-9]+)%/)?.[1];
+        if(progress !== undefined) {
+          const progInt = parseInt(progress,10);
+          if(progInt >= 0 && progInt <= 100 &&
+            progInt !== lastProgress && event.emit("progress", progInt/100))
+              lastProgress = progInt;
         }
       });
-      mkSquashFS.on('close', (...args) => event.emit("close",...args));
-      mkSquashFS.on('error', (error) => event.emit("error", error));
+      mkSquashFS.on("close", (...args) => event.emit("close",...args));
+      mkSquashFS.on("error", (error) => event.emit("error", error));
     });
   return event;
 }
 
 export function getSquashFsVer() {
   /** First line of the output, which should contain version of the program. */
-  const output = spawnSync("mksquashfs",["-version"]).stdout.toString()
-    .split('\n')[0];
+  let output:string|undefined;
+  try {
+    output = execFileSync("mksquashfs",["-version"],{
+      encoding: "utf8",
+      timeout: 3000,
+      maxBuffer: 768,
+      windowsHide: true,
+      env: {}
+    }).split('\n')[0];
+  } catch {
+    output = undefined;
+  }
   if(output === undefined)
     throw new TypeError("Unable to parse '-version': first line read error.");
   /** A part of the string which includes the dot-separated version of the program. */
