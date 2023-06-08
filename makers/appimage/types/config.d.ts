@@ -1,7 +1,7 @@
 export interface MakerAppImageConfigOptions {
     /**
      * Name of the package (used as folder name, `X-AppImage-Name` etc).
-     * It should contain only lowercase letters and hypens. It should also start
+     * It should contain only lowercase letters and hyphens. It should also start
      * from a letter and contain at least one character.
      * 
      * If above requirements aren't met, maker will approach to sanitize the
@@ -44,7 +44,7 @@ export interface MakerAppImageConfigOptions {
      */
     icon?: string,
     /**
-     * List of dekstop file categories to append.
+     * List of desktop file categories to append.
      * 
      * @since v1.0.0
      */
@@ -82,7 +82,7 @@ export interface MakerAppImageConfigOptions {
     /**
      * Use given compressor for SquashFS filesystem.
      * 
-     * Defaults to `mksquasfs` binary defaults (usually `gzip`).
+     * Defaults to `mksquashfs` binary defaults (usually `gzip`).
      * 
      * @since v2.1.0
      */
@@ -98,7 +98,7 @@ export interface MakerAppImageConfigOptions {
     AppImageKitRelease?: number | `${number}` | "continuous",
     /**
      * Whenever to emulate support for Arch Linux `{name}-flags.conf` file,
-     * which contains additional flags prependeded to ARGV when executing
+     * which contains additional flags prepended to ARGV when executing
      * Electron binary by the shell script. This should be compatible with the
      * file format described in [this Arch Wiki section][wiki].
      * 
@@ -130,7 +130,7 @@ export interface MakerAppImageConfig {
  * ```
  */
  export interface FreeDesktopCategories {
-    /** Categories that every desktop confirming enviroment **must** support. */
+    /** Categories that every desktop confirming environment **must** support. */
     main: (
         "AudioVideo" | "Audio" | "Video" | "Development" | "Education" |
         "Game" | "Graphics" | "Network" | "Office" | "Science" | "Settings" |

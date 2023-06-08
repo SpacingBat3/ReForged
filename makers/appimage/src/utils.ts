@@ -128,7 +128,7 @@ export function generateDesktop(desktopEntry: Partial<Record<string,string|null>
 }
 
 /**
- * Asynchroniously copy path from `source` to `destination`, with similar logic
+ * Asynchronously copy path from `source` to `destination`, with similar logic
  * to Unix `cp -R` command.
  */
 export async function copyPath(source:string, destination:string, dirmode: Mode|ModeFunction = 0o644) {
@@ -306,13 +306,13 @@ const enum FileHeader {
  * 
  * For PNGs, it gets required information (like image width or height)
  * from IHDR header (if it is correct according to spec), otherwise it sets
- * dimention values to `null`.
+ * dimension values to `null`.
  * 
  * For SVGs, it gets information about the dimensions from `<svg>` tag. If it is
  * missing, this function will return `null` for `width` and/or `height`.
  * 
  * This function will also recognize file formats based on *MAGIC* headers – for
- * SVGs, it looks for existance of `<svg>` tag, for PNGs it looks if file starts
+ * SVGs, it looks for existence of `<svg>` tag, for PNGs it looks if file starts
  * from the specific bytes.
  * 
  * @param image PNG/SVG/XPM image buffer.
@@ -350,10 +350,10 @@ export function getImageMetadata(image:Buffer):ImageMetadata {
       const svgImage = image.toString("utf8");
       const rawMeta = {
         width: parseInt(svgImage.match(svgMagic.width)?.[1]??""),
-        heigth: parseInt(svgImage.match(svgMagic.height)?.[1]??""),
+        height: parseInt(svgImage.match(svgMagic.height)?.[1]??""),
       }
       partialMeta["width"] = isNaN(rawMeta["width"]) ? null : rawMeta["width"];
-      partialMeta["height"] = isNaN(rawMeta["heigth"]) ? null : rawMeta["heigth"];
+      partialMeta["height"] = isNaN(rawMeta["height"]) ? null : rawMeta["height"];
       break;
     }
     default:
