@@ -373,10 +373,9 @@ export function setChecksum(runtime:ArrayBuffer|Buffer,squashfs:Buffer): Buffer 
   const hashHeader = ".digest_md5";
   const buffer = runtime instanceof Buffer ? runtime : Buffer.from(runtime);
   const hashOffset = buffer.indexOf(hashHeader)+hashHeader.length;
-  const [pre,post] = [buffer.subarray(0,hashOffset),buffer.subarray(hashOffset)];
   return Buffer.concat([
-    pre,
+    buffer.subarray(0,hashOffset),
     createHash("md5").update(squashfs).digest(),
-    post
+    buffer.subarray(hashOffset)
   ]);
 }
