@@ -1,6 +1,6 @@
 (process as {setSourceMapsEnabled?:(arg0:boolean)=>void}).setSourceMapsEnabled?.(true);
 
-import { createHash } from "crypto";
+import { createHash, getHashes } from "crypto";
 import { tmpdir } from "os";
 import { resolve, dirname, extname, relative } from "path";
 import {
@@ -217,6 +217,8 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         .then(data => {
           const buffer = Buffer.from(data);
           if(currentTag === RemoteDefaults.Tag) {
+            if(!getHashes().includes("md5"))
+              throw new Error("MD5 is not supported by 'node:crypto'.");
             const hash = createHash("md5")
               .update(buffer)
               .digest('hex');
