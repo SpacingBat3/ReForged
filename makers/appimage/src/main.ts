@@ -65,6 +65,7 @@ const enum RemoteDefaults {
  * configuration options.
  * 
  * @example
+ * ```js
  * {
  *   name: "@reforged/maker-appimage",
  *   config: {
@@ -88,6 +89,7 @@ const enum RemoteDefaults {
  *     }
  *   }
  * }
+ * ```
  */
 export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerBase<C> {
   defaultPlatforms:["linux"] = ["linux"];
