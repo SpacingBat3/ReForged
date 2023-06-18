@@ -176,7 +176,11 @@ export function mkSquashFs(...squashfsOptions:string[]) {
   import("child_process").then(child => child.execFile)
     .then(execFile => {
       const mkSquashFS = execFile("mksquashfs", squashfsOptions, {
-        windowsHide: true
+        windowsHide: true,
+        env: {
+          PATH: process.env["PATH"],
+          SOURCE_DATE_EPOCH: process.env["SOURCE_DATE_EPOCH"]
+        }
       });
       let lastProgress = 0;
       mkSquashFS.on("message", (chunk) => {
@@ -204,7 +208,7 @@ export function getSquashFsVer() {
       timeout: 3000,
       maxBuffer: 768,
       windowsHide: true,
-      env: {}
+      env: { PATH: process.env["PATH"] }
     }).split('\n')[0];
   } catch {
     output = undefined;
