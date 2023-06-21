@@ -191,7 +191,10 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         `exec "$USR/lib/${name}/${binShell}" "$@"`
       ]
     });
+    /** Whenever using the script is neccesary. */
+    let useScript = false;
     if(flagsFile) {
+      useScript = true;
       sources.shell.pop();
       sources.shell.push(
         'ARGV=\'\'',
@@ -270,9 +273,14 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         : Promise.reject(Error("Invalid icon / icon path.")) : Promise.resolve(),
     ] as const;
     const lateJobs = [
-      // Write shell script to file
+      // Write shell script to file or create a symlink
       earlyJobs[1]
-        .then(() => writeFile(resolve(directories.bin, bin),sources.shell.join('\n'), {mode: 0o755})),
+        .then(() => {
+          const binPath = resolve(directories.bin, bin);
+          if(useScript)
+            return writeFile(binPath,sources.shell.join('\n'), {mode: 0o755})
+          return symlink(relative(directories.bin, resolve(directories.data,binShell)),binPath,"file");
+        }),
       // Copy Electron app to AppImage directories
       earlyJobs[0]
         .then(() => copyPath(dir, directories.data, 0o755)),
