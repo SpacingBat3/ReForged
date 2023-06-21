@@ -6,6 +6,7 @@ import { execFileSync } from "child_process";
 import { coerce } from "semver";
 
 import type { MakerOptions } from "@electron-forge/maker-base"
+import type { SemVer } from "semver"
 
 type AppImageArch = "x86_64"|"aarch64"|"armhf"|"i686";
 export type ForgeArch = "x64" | "arm64" | "armv7l" | "ia32" | "mips64el" | "universal";
@@ -200,29 +201,22 @@ export function mkSquashFs(...squashfsOptions:string[]) {
 }
 
 export function getSquashFsVer() {
-  /** First line of the output, which should contain version of the program. */
-  let output:string|undefined;
-  try {
-    output = execFileSync("mksquashfs",["-version"],{
-      encoding: "utf8",
-      timeout: 3000,
-      maxBuffer: 768,
-      windowsHide: true,
-      env: { PATH: process.env["PATH"] }
-    }).split('\n')[0];
-  } catch {
-    output = undefined;
-  }
+  let output:string|SemVer|undefined|null = execFileSync("mksquashfs",["-version"],{
+    encoding: "utf8",
+    timeout: 3000,
+    maxBuffer: 768,
+    windowsHide: true,
+    env: { PATH: process.env["PATH"] }
+  }).split('\n')[0];
   if(output === undefined)
     throw new TypeError("Unable to parse '-version': first line read error.");
-  /** A part of the string which includes the dot-separated version of the program. */
-  const strVer = /(?<=version )[0-9.]+/.exec(output)?.[0];
-  if(strVer === undefined)
+  output = /(?<=version )[0-9.]+/.exec(output)?.[0];
+  if(output === undefined)
     throw new TypeError("Unable to parse '-version': number not found.");
-  const semStr = coerce(strVer);
-  if(semStr === null)
-    throw new Error(`Unable to coerce string '${strVer}' to SemVer.`);
-  return semStr;
+  output = coerce(output);
+  if(output === null)
+    throw new Error(`Unable to coerce string '${output}' to SemVer.`);
+  return output;
 };
 
 /**
