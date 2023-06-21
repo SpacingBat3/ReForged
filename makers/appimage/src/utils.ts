@@ -168,7 +168,7 @@ export async function copyPath(source:string, destination:string, dirmode: Mode|
 }
 
 /**
- * Raw bindings to `mksquashfs` binary.
+ * A wrapper for `mksquashfs` binary.
  * 
  * @returns An event used to watch for `mksquashfs` changes, including the job progress (in percent – as float number).
  */
@@ -200,6 +200,12 @@ export function mkSquashFs(...squashfsOptions:string[]) {
   return event;
 }
 
+/**
+ * Returns the version of `mksquashfs` binary, as `SemVer` value.
+ * 
+ * Under the hood, it executes `mksquashfs` with `-version`, parses
+ * the `stdout` and tries to coerce it to `SemVer`.
+ */
 export function getSquashFsVer() {
   let output:string|SemVer|undefined|null = execFileSync("mksquashfs",["-version"],{
     encoding: "utf8",
@@ -220,7 +226,7 @@ export function getSquashFsVer() {
 };
 
 /**
- * Concatenates files and/or buffers into single buffer.
+ * Concatenates files and/or buffers into a new buffer.
  */
 export async function joinFiles(...filesAndBuffers:(string|Buffer)[]) {
   const {readFile} = await import("fs/promises");
