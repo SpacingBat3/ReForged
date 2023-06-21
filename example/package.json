@@ -15,7 +15,7 @@
     "name": "SpacingBat3",
     "email": "git@spacingbat3.anonaddy.com"
   },
-  "license": "ISC",
+  "license": "UNLICENSE",
   "devDependencies": {
     "@electron-forge/cli": "^6.0.5",
     "@reforged/maker-appimage": "file:../makers/appimage",

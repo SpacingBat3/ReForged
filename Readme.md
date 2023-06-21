@@ -35,7 +35,8 @@ project are:
 
 ## License
 
-This project is distributed under terms of [ISC license](./LICENSE):
+This project, unless otherwise specified, is distributed under terms of the
+[ISC license](./LICENSE) distributed with this project and subprojects:
 
     Permission to use, copy, modify, and/or distribute this software for any purpose
     with or without fee is hereby granted, provided that the above copyright notice
@@ -49,7 +50,9 @@ This project is distributed under terms of [ISC license](./LICENSE):
     TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
     THIS SOFTWARE.
 
-(Note: the above text should be treated as a preview, not the actual software license)
+> **Note** | The above text should not be treated as the software license and is
+> mentioned here only as a preview. You should read and distribute [`LICENSE`](./LICENSE)
+> file instead.
 
 [forge]: https://github.com/electron/forge
 [maker1]: https://www.npmjs.com/package/@reforged/maker-appimage
