@@ -104,7 +104,20 @@ export interface MakerAppImageConfigOptions {
      * 
      * [wiki]: https://wiki.archlinux.org/index.php?title=Chromium&oldid=776126#Making_flags_persistent
      */
-    flagsFile?: boolean
+    flagsFile?: boolean,
+    /**
+     * Whenever to use the new experimental statically-linked runtime executable.
+     * This implies {@linkcode AppImageKitRelease} is set to `"continuous"`.
+     * 
+     * **This option is highly experimental and might break after changes in
+     * `AppImage/type2-runtime` repo will be deleted or merged to
+     * `AppImage/AppImageKit`!**
+     * 
+     * Default is `false`.
+     * 
+     * @experimental
+     */
+    type2runtime?: boolean | Type2RuntimeOptions
 }
 
 export interface MakerAppImageConfig {
@@ -114,6 +127,14 @@ export interface MakerAppImageConfig {
      * @since v1.0.0
      */
     options?: MakerAppImageConfigOptions
+}
+
+export interface Type2RuntimeOptions {
+    /**
+     * The release of runtime used for building AppImage – either ones using
+     * FUSE library version 2 or 3. Default is `2`.
+     */
+    fuseVersion: 2|3|`${2|3}`
 }
 
 /**

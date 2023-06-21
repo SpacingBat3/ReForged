@@ -46,13 +46,14 @@ const nodeFetch = (() => {
 })()
 
 const enum RemoteDefaults {
-  /** Default URL from which AppImageKit distributables are downloaded. */
-  Mirror = 'https://github.com/AppImage/AppImageKit/releases/download/',
+  MirrorHost = 'https://github.com/AppImage/',
+  MirrorPath = '/releases/download/',
+  MirrorAK = 'AppImageKit',
+  MirrorT2R = 'type2-runtime',
   /** Currently supported release of AppImageKit distributables. */
   Tag = 13,
   Dir = "{{ version }}",
   FileName = "{{ filename }}-{{ arch }}",
-
 }
 
 
@@ -102,7 +103,8 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
       categories,
       compressor,
       genericName,
-      flagsFile
+      flagsFile,
+      type2runtime
     } = (this.config.options ?? {});
     const appImageArch = mapArch(targetArch);
     function parseMirror(string:string,version:typeof currentTag,filename:string|null=null) {
@@ -114,9 +116,15 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         string = string.replaceAll(/{{ *filename *}}/g, filename);
       return string;
     }
+    const defaultMirror = type2runtime ? RemoteDefaults.MirrorT2R : RemoteDefaults.MirrorAK;
+    const runtimePrefix = type2runtime ? type2runtime === true ? "-fuse3" :
+      `-fuse${type2runtime?.fuseVersion??2}` as const : "";
     /** A URL-like object from which assets will be downloaded. */
     const remote = {
-      mirror: process.env["REFORGED_APPIMAGEKIT_MIRROR"] ?? process.env["APPIMAGEKIT_MIRROR"] ?? RemoteDefaults.Mirror,
+      mirror: {
+        runtime: process.env["REFORGED_APPIMAGEKIT_MIRROR"] ?? process.env["APPIMAGEKIT_MIRROR"] ?? `${RemoteDefaults.MirrorHost}${defaultMirror}${RemoteDefaults.MirrorPath}`,
+        AppRun: process.env["REFORGED_APPIMAGEKIT_MIRROR"] ?? process.env["APPIMAGEKIT_MIRROR"] ?? `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorAK}${RemoteDefaults.MirrorPath}`
+      },
       dir: process.env["REFORGED_APPIMAGEKIT_CUSTOM_DIR"] ?? process.env["APPIMAGEKIT_CUSTOM_DIR"] ?? RemoteDefaults.Dir,
       file: process.env["REFORGED_APPIMAGEKIT_CUSTOM_FILENAME"] ?? process.env["APPIMAGEKIT_CUSTOM_FILENAME"] ?? RemoteDefaults.FileName
     };
@@ -132,7 +140,9 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     /** Resolved path to AppImage output file. */
     const outFile = resolve(makeDir, this.name, targetArch, `${productName}-${packageJSON.version}-${targetArch}.AppImage`);
     /** A currently used AppImageKit release. */
-    const currentTag = this.config.options?.AppImageKitRelease ?? RemoteDefaults.Tag;
+    const currentTag = (
+      type2runtime ? "continuous" : this.config.options?.AppImageKitRelease ?? RemoteDefaults.Tag
+    ) satisfies Exclude<Required<MakerAppImageConfig>["options"]["AppImageKitRelease"],undefined>;
     /**
      * Detailed information about the source files.
      * 
@@ -145,7 +155,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     const sources = Object.freeze({
       /** Details about the AppImage runtime. */
       runtime: Object.freeze({
-        data: nodeFetch(parseMirror(`${remote.mirror}${remote.dir}/${remote.file}`,currentTag,"runtime"))
+        data: nodeFetch(parseMirror(`${remote.mirror.runtime}${remote.dir}/${remote.file}`,currentTag,`runtime${runtimePrefix}`))
           .then(response => {
             if(response.ok)
               return response.arrayBuffer()
@@ -156,7 +166,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
       }),
       /** Details about AppRun ELF executable, used to start the app. */
       AppRun: Object.freeze({
-        data: nodeFetch(parseMirror(`${remote.mirror}${remote.dir}/${remote.file}`,currentTag,"AppRun"))
+        data: nodeFetch(parseMirror(`${remote.mirror.AppRun}${remote.dir}/${remote.file}`,currentTag,"AppRun"))
           .then(response => {
             if(response.ok)
               return response.arrayBuffer()
@@ -352,7 +362,8 @@ export {
 export type {
   MakerAppImageConfig,
   MakerAppImageConfigOptions,
-  FreeDesktopCategories
+  FreeDesktopCategories,
+  Type2RuntimeOptions
 } from "../types/config";
 
 export type {
