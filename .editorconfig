@@ -1,0 +1,32 @@
+# This is EditorConfig, utilized by many editors.
+# It also defines some of rules like line endings for this project.
+#
+# See more details at <https://editorconfig.org/>
+#
+
+# Defines current ".editorconfig" is placed at project's root directory
+root=true
+
+# Default editor config for a project
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = false
+trim_trailing_whitespace = true
+
+# Default indentation for TypeScript and JSON files
+[*.{ts,json}]
+indent_style = space
+indent_size = 2
+
+# Overrides for package.json files
+[package.json]
+insert_final_newline = true
+
+# Overrides for TypeScript files in "example" subproject
+[example/**/*.ts]
+insert_final_newline = true
+
+# Overrides for license files
+[{COPYING{,.{txt,md}},ISC{,.{txt,md}},{UN,}LICENSE{,.{txt,md}}}]
+insert_final_newline = true

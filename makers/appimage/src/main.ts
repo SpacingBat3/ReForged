@@ -59,12 +59,12 @@ const enum RemoteDefaults {
 
 /**
  * An AppImage maker for Electron Forge.
- * 
+ *
  * See `Readme.md` file distributed in subproject's root dir for more
  * information and documentation of supported env variables. See
  * JSDoc/TSDoc/TypeDoc documentation (this ones!) for supported
  * configuration options.
- * 
+ *
  * @example
  * ```js
  * {
@@ -145,7 +145,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     ) satisfies Exclude<Required<MakerAppImageConfig>["options"]["AppImageKitRelease"],undefined>;
     /**
      * Detailed information about the source files.
-     * 
+     *
      * As of remote content, objects contain the data in form of
      * ArrayBuffers (which are then allocated to Buffers,
      * checksum-verified and saved as regular files). The text-based
