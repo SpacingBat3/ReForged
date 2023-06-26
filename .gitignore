@@ -13,4 +13,4 @@ makers/*/types/*
 # Ignore local packages
 *.tgz
 # Ignore typedoc files
-docs/
+docs/typedoc/

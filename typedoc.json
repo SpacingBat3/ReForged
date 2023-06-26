@@ -14,7 +14,8 @@
   "excludeInternal": true,
   "excludeExternals": false,
   "excludePrivate": true,
-  "readme": "./Readme.md",
+  "readme": "./docs/Readme.md",
   "name": "ReForged",
-  "theme": "default"
+  "theme": "default",
+  "out": "./docs/typedoc"
 }
