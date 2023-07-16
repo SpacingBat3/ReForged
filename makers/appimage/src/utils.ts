@@ -135,7 +135,7 @@ export function generateDesktop(desktopEntry: Partial<Record<string,string|null>
 export async function copyPath(source:string, destination:string, dirmode: Mode|ModeFunction = 0o644) {
   const fs = Promise.all([import("fs"), import("fs/promises")])
     .then(([sync,async]) => ({...sync, ...async}));
-  const resolve = import("path").then(path => path.resolve);
+  const path = import("path");
   async function copyDirRecursively(source:string, destination:string) {
     const jobs: Array<Promise<void>> = [];
     const items = await (await fs).readdir(source);
@@ -143,14 +143,22 @@ export async function copyPath(source:string, destination:string, dirmode: Mode|
     await (await fs).mkdir(destination, await mode);
     for(const item of items) {
       const itemPath = {
-        src: (await resolve)(source, item),
-        dest: (await resolve)(destination, item)
+        src: (await path).resolve(source, item),
+        dest: (await path).resolve(destination, item)
       }
       jobs.push((await fs).lstat(itemPath.src).then(async(stats) => {
         if(stats.isDirectory())
           await copyDirRecursively(itemPath.src, itemPath.dest);
-        else {
+        else if(stats.isFile())
           await (await fs).copyFile(itemPath.src, itemPath.dest);
+        else if((await stats).isSymbolicLink()) {
+          const target = (await path)
+            .resolve(itemPath.src, await (await fs).readlink(itemPath.src));
+          if((await fs).existsSync(target))
+            return (await fs).symlink(
+              (await path).relative(itemPath.dest, target),
+              await itemPath.dest
+            )
         }
       }));
     }
@@ -160,16 +168,15 @@ export async function copyPath(source:string, destination:string, dirmode: Mode|
   const resolvedDestination = destination.endsWith("/") || (await fs).existsSync(destination) ?
     import("path").then(path => path.resolve(destination, path.basename(source))) :
     destination
-  if((await stats).isDirectory()) {
+  if((await stats).isDirectory())
     return copyDirRecursively(source, await resolvedDestination);
-  } else {
+  else
     return (await fs).copyFile(source, await resolvedDestination);
-  }
 }
 
 /**
  * A wrapper for `mksquashfs` binary.
- * 
+ *
  * @returns An event used to watch for `mksquashfs` changes, including the job progress (in percent – as float number).
  */
 export function mkSquashFs(...squashfsOptions:string[]) {
@@ -202,7 +209,7 @@ export function mkSquashFs(...squashfsOptions:string[]) {
 
 /**
  * Returns the version of `mksquashfs` binary, as `SemVer` value.
- * 
+ *
  * Under the hood, it executes `mksquashfs` with `-version`, parses
  * the `stdout` and tries to coerce it to `SemVer`.
  */
@@ -281,7 +288,7 @@ export const mapHash = Object.freeze({
 /**
  * A function to validate if the type of any value is like the one in
  * {@link ImageMetadata} interface.
- * 
+ *
  * @param meta Any value to validate the type of.
  * @returns Whenever `meta` is an {@link ImageMetadata}-like object.
  */
@@ -305,20 +312,20 @@ const enum FileHeader {
 
 /**
  * A function to fetch metadata from buffer in PNG or SVG format.
- * 
+ *
  * @remarks
- * 
+ *
  * For PNGs, it gets required information (like image width or height)
  * from IHDR header (if it is correct according to spec), otherwise it sets
  * dimension values to `null`.
- * 
+ *
  * For SVGs, it gets information about the dimensions from `<svg>` tag. If it is
  * missing, this function will return `null` for `width` and/or `height`.
- * 
+ *
  * This function will also recognize file formats based on *MAGIC* headers – for
  * SVGs, it looks for existence of `<svg>` tag, for PNGs it looks if file starts
  * from the specific bytes.
- * 
+ *
  * @param image PNG/SVG/XPM image buffer.
  */
 export function getImageMetadata(image:Buffer):ImageMetadata {
