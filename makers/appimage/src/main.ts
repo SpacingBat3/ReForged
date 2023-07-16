@@ -116,14 +116,17 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         string = string.replaceAll(/{{ *filename *}}/g, filename);
       return string;
     }
-    const defaultMirror = type2runtime ? RemoteDefaults.MirrorT2R : RemoteDefaults.MirrorAK;
-    const runtimePrefix = type2runtime ? type2runtime === true ? "-fuse3" :
-      `-fuse${type2runtime?.fuseVersion??2}` as const : "";
     /** A URL-like object from which assets will be downloaded. */
     const remote = {
       mirror: {
-        runtime: process.env["REFORGED_APPIMAGEKIT_MIRROR"] ?? process.env["APPIMAGEKIT_MIRROR"] ?? `${RemoteDefaults.MirrorHost}${defaultMirror}${RemoteDefaults.MirrorPath}`,
-        AppRun: process.env["REFORGED_APPIMAGEKIT_MIRROR"] ?? process.env["APPIMAGEKIT_MIRROR"] ?? `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorAK}${RemoteDefaults.MirrorPath}`
+        runtime: type2runtime ?
+          `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorT2R}${RemoteDefaults.MirrorPath}` :
+          process.env["REFORGED_APPIMAGEKIT_MIRROR"] ??
+            process.env["APPIMAGEKIT_MIRROR"] ??
+            `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorAK}${RemoteDefaults.MirrorPath}`,
+        AppRun: process.env["REFORGED_APPIMAGEKIT_MIRROR"] ??
+          process.env["APPIMAGEKIT_MIRROR"] ??
+          `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorAK}${RemoteDefaults.MirrorPath}`
       },
       dir: process.env["REFORGED_APPIMAGEKIT_CUSTOM_DIR"] ?? process.env["APPIMAGEKIT_CUSTOM_DIR"] ?? RemoteDefaults.Dir,
       file: process.env["REFORGED_APPIMAGEKIT_CUSTOM_FILENAME"] ?? process.env["APPIMAGEKIT_CUSTOM_FILENAME"] ?? RemoteDefaults.FileName
@@ -155,7 +158,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     const sources = Object.freeze({
       /** Details about the AppImage runtime. */
       runtime: Object.freeze({
-        data: nodeFetch(parseMirror(`${remote.mirror.runtime}${remote.dir}/${remote.file}`,currentTag,`runtime${runtimePrefix}`))
+        data: nodeFetch(parseMirror(`${remote.mirror.runtime}${remote.dir}/${remote.file}`,currentTag,"runtime"))
           .then(response => {
             if(response.ok)
               return response.arrayBuffer()
@@ -362,8 +365,7 @@ export {
 export type {
   MakerAppImageConfig,
   MakerAppImageConfigOptions,
-  FreeDesktopCategories,
-  Type2RuntimeOptions
+  FreeDesktopCategories
 } from "../types/config";
 
 export type {
