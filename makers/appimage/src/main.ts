@@ -163,7 +163,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
             if(response.ok)
               return response.arrayBuffer()
             else
-              throw new Error("AppRun request failure.")
+              throw new Error(`Runtime request failure (${response.status}: ${response.statusText}).`)
           }),
         md5: mapHash.runtime[mapArch(targetArch)]
       }),
@@ -174,7 +174,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
             if(response.ok)
               return response.arrayBuffer()
             else
-              throw new Error("AppRun request failure.")
+              throw new Error(`AppRun request failure (${response.status}: ${response.statusText}).`)
           }),
         md5: mapHash.AppRun[mapArch(targetArch)]
       }),
@@ -204,7 +204,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
         `exec "$USR/lib/${name}/${binShell}" "$@"`
       ]
     });
-    /** Whenever using the script is neccesary. */
+    /** Whenever using the script is necessary. */
     let useScript = false;
     if(flagsFile) {
       useScript = true;
