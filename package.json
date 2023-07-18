@@ -20,7 +20,7 @@
     "@types/node": "^18.11.17",
     "@types/semver": "^7.3.13",
     "typedoc": "^0.24.6",
-    "typescript": "^5.0.2"
+    "typescript": "^5.1.6"
   },
   "workspaces": [
     "makers/*/",

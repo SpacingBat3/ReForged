@@ -33,6 +33,7 @@ import {
 
 import type MakerAppImageConfig from "../types/config";
 import type { MakerMeta } from "./utils";
+import { Cache } from "./cache";
 
 /**
  * A fetch-alike implementation used in this module, will be native API if
@@ -44,6 +45,27 @@ const nodeFetch = (() => {
     return (url:string)=>(globalThis as unknown as {fetch:Awaited<typeof fetchModule>}).fetch(url)
   return async (url:string) => (await fetchModule)(url);
 })()
+
+async function cachedFetchArrayBuffer(cache: Cache, url: string, filename: string): Promise<ArrayBuffer> {
+  const cachedPath = await cache.getPathForFileInCache(url, filename);
+
+  if (cachedPath !== null) {
+    const cachedFileBuffer = await readFile(cachedPath);
+    return cachedFileBuffer.buffer.slice(0, cachedFileBuffer.length);
+  }
+
+  const response = await nodeFetch(url);
+
+  if (!response.ok) {
+    throw new Error(`${filename} request failure (${response.status}: ${response.statusText}).`)
+  }
+
+  const fileBuffer = await response.arrayBuffer();
+
+  await cache.putFileInCache(url, filename, fileBuffer);
+
+  return fileBuffer;
+}
 
 const enum RemoteDefaults {
   MirrorHost = 'https://github.com/AppImage/',
@@ -131,6 +153,8 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
       dir: process.env["REFORGED_APPIMAGEKIT_CUSTOM_DIR"] ?? process.env["APPIMAGEKIT_CUSTOM_DIR"] ?? RemoteDefaults.Dir,
       file: process.env["REFORGED_APPIMAGEKIT_CUSTOM_FILENAME"] ?? process.env["APPIMAGEKIT_CUSTOM_FILENAME"] ?? RemoteDefaults.FileName
     };
+    /** A cache for downloaded assets. */
+    const cache = new Cache();
     /** Node.js friendly name of the application. */
     const name = sanitizeName(this.config.options?.name ?? packageJSON.name as string);
     /** Name of binary, used for shell script generation and `Exec` values. */
@@ -158,24 +182,12 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     const sources = Object.freeze({
       /** Details about the AppImage runtime. */
       runtime: Object.freeze({
-        data: nodeFetch(parseMirror(`${remote.mirror.runtime}${remote.dir}/${remote.file}`,currentTag,"runtime"))
-          .then(response => {
-            if(response.ok)
-              return response.arrayBuffer()
-            else
-              throw new Error(`Runtime request failure (${response.status}: ${response.statusText}).`)
-          }),
+        data: cachedFetchArrayBuffer(cache, parseMirror(`${remote.mirror.runtime}${remote.dir}/${remote.file}`,currentTag,"runtime"), 'runtime'),
         md5: mapHash.runtime[mapArch(targetArch)]
       }),
       /** Details about AppRun ELF executable, used to start the app. */
       AppRun: Object.freeze({
-        data: nodeFetch(parseMirror(`${remote.mirror.AppRun}${remote.dir}/${remote.file}`,currentTag,"AppRun"))
-          .then(response => {
-            if(response.ok)
-              return response.arrayBuffer()
-            else
-              throw new Error(`AppRun request failure (${response.status}: ${response.statusText}).`)
-          }),
+        data: cachedFetchArrayBuffer(cache, parseMirror(`${remote.mirror.AppRun}${remote.dir}/${remote.file}`,currentTag,"AppRun"), 'AppRun'),
         md5: mapHash.AppRun[mapArch(targetArch)]
       }),
       /** Details about the generated `.desktop` file. */
