@@ -17,7 +17,7 @@
   },
   "license": "UNLICENSE",
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.5",
+    "@electron-forge/cli": "^7.1.0",
     "@reforged/maker-appimage": "file:../makers/appimage",
     "electron": "latest"
   },
