@@ -21,7 +21,7 @@
   "author": "SpacingBat3",
   "license": "ISC",
   "dependencies": {
-    "@electron-forge/maker-base": "^6.0.4",
+    "@electron-forge/maker-base": "^6.0.0 || ^7.0.0",
     "@spacingbat3/lss": "^1.0.0",
     "node-fetch": "^3.2.5",
     "semver": "^7.3.8"
