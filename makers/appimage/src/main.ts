@@ -310,19 +310,20 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     await(Promise.all([...earlyJobs,...lateJobs]));
     // Run `mksquashfs` and wait for it to finish
     const mkSquashFsArgs = [workDir, outFile];
-    optArgs: {
-      const mkSquashFsVer = getSquashFsVer();
+    const mkSquashFsVer = getSquashFsVer();
+    switch(-1) {
       // -noappend is supported since 1.2+
-      if(mkSquashFsVer.compare("1.2.0") === -1)
-        break optArgs;
+      case(mkSquashFsVer.compare("1.2.0")): //@ts-expect-error falls through
+        break; case -1:
       mkSquashFsArgs.push("-noappend");
       // -all-root is supported since 2.0+
-      if(mkSquashFsVer.compare("2.0.0") === -1)
-        break optArgs;
+      case mkSquashFsVer.compare("2.0.0"): //@ts-expect-error falls through
+        break; case -1:
       mkSquashFsArgs.push("-all-root");
       // -all-time and -mkfs-time is supported since 4.4+
-      if(mkSquashFsVer.compare("4.4.0") === -1)
-        break optArgs;
+      case mkSquashFsVer.compare("4.4.0"):
+        break;
+      default: if(process.env["SOURCE_DATE_EPOCH"] === undefined)
       mkSquashFsArgs.push("-all-time", "0", "-mkfs-time", "0");
     }
     // Set compressor options if available
