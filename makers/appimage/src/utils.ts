@@ -22,84 +22,84 @@ interface ImageMetadata {
   height: number|null;
 }
 
-interface mkSquashFsEvent extends EventEmitter {
-  /**
-   * Emitted when `mksquashfs` process has been closed.
-   */
-  on(eventName: "close", listener: (
+/** Function argument definitions for {@linkcode mkSqFsEvt}. */
+interface mkSqFSListenerArgs {
+  close: [
     /** A returned code when process normally exits. */
     code: number|null,
     /** A signal which closed the process. */
     signal:NodeJS.Signals|null
-  ) => void): this;
+  ];
+  progress: [
+    /** A number from range 0-100 indicating the current progress made on creating the image. */
+    percent: number
+  ];
+  error: [
+    error: Error
+  ];
+};
+
+type mkSqFSEvtListen<T extends keyof mkSqFSListenerArgs> = [
+  eventName: T,
+  listener: (..._:mkSqFSListenerArgs[T]) => void
+];
+
+type mkSqFSEvtEmit<T extends keyof mkSqFSListenerArgs> = [
+  event: T,
+  ..._:mkSqFSListenerArgs[T]
+];
+
+/** An `EventListener` interface with parsed events from mksquashfs child process. */
+interface mkSqFsEvt extends EventEmitter {
+  /**
+   * Emitted when `mksquashfs` process has been closed.
+   */
+  on(..._:mkSqFSEvtListen<"close">): this;
   /**
    * Emitted once `mksquashfs` process has been closed.
    */
-  once(eventName: "close", listener: (
-    /** A returned code when process normally exits. */
-    code: number|null,
-    /** A signal which closed the process. */
-    signal:NodeJS.Signals|null
-  ) => void): this;
+  once(..._:mkSqFSEvtListen<"close">): this;
   /**
    * Emitted when `mksquashfs` process has been closed.
    */
-  addListener(eventName: "close", listener: (
-    /** A returned code when process normally exits. */
-    code: number|null,
-    /** A signal which closed the process. */
-    signal:NodeJS.Signals|null
-  ) => void): this;
+  addListener(..._:mkSqFSEvtListen<"close">): this;
   /**
    * Emitted when `mksquashfs` process has been closed.
    */
-  removeListener(eventName: "close", listener: (
-    /** A returned code when process normally exits. */
-    code: number|null,
-    /** A signal which closed the process. */
-    signal:NodeJS.Signals|null
-  ) => void): this;
+  removeListener(..._:mkSqFSEvtListen<"close">): this;
 
   /**
    * Emitted whenever a progress has been made on SquashFS image generation.
    */
-  on(eventName: "progress", listener: (
-    /** A number from range 0-100 indicating the current progress made on creating the image. */
-    percent: number) => void): this;
+  on(..._:mkSqFSEvtListen<"progress">): this;
   /**
    * Emitted whenever a progress has been made on SquashFS image generation.
    */
-  once(eventName: "progress", listener: (
-    /** A number from range 0-100 indicating the current progress made on creating the image. */
-    percent: number) => void): this;
+  once(..._:mkSqFSEvtListen<"progress">): this;
   /**
    * Emitted whenever a progress has been made on SquashFS image generation.
    */
-  addListener(eventName: "progress", listener: (
-    /** A number from range 0-100 indicating the current progress made on creating the image. */
-    percent: number) => void): this;
+  addListener(..._:mkSqFSEvtListen<"progress">): this;
   /**
    * Emitted whenever a progress has been made on SquashFS image generation.
    */
-  removeListener(eventName: "progress", listener: (
-    /** A number from range 0-100 indicating the current progress made on creating the image. */
-    percent: number) => void): this;
+  removeListener(..._:mkSqFSEvtListen<"progress">): this;
 
   /** Emitted whenever process has threw an error. */
-  on(eventName: "error", listener: (error: Error) => void): this;
+  on(..._:mkSqFSEvtListen<"error">): this;
   /** Emitted whenever process has threw an error. */
-  once(eventName: "error", listener: (error: Error) => void): this;
+  once(..._:mkSqFSEvtListen<"error">): this;
   /** Emitted whenever process has threw an error. */
-  addListener(eventName: "error", listener: (error: Error) => void): this;
+  addListener(..._:mkSqFSEvtListen<"error">): this;
   /** Emitted whenever process has threw an error. */
-  removeListener(eventName: "error", listener: (error: Error) => void): this;
+  removeListener(..._:mkSqFSEvtListen<"error">): this;
 
   /** @internal */
-  emit(event: "progress", percent: number): boolean;
+  emit(..._:mkSqFSEvtEmit<"close">): boolean;
   /** @internal */
-  emit(event: "close", code: number|null, signal:NodeJS.Signals|null): boolean;
+  emit(..._:mkSqFSEvtEmit<"progress">): boolean;
   /** @internal */
-  emit(event: "error", error: Error): boolean;
+  emit(..._:mkSqFSEvtEmit<"error">): boolean;
 }
 
 export function generateDesktop(desktopEntry: Partial<Record<string,string|null>>, actions?: Record<string,Partial<Record<string,string|null>>&{ Name: string }>) {
@@ -180,7 +180,7 @@ export async function copyPath(source:string, destination:string, dirmode: Mode|
  * @returns An event used to watch for `mksquashfs` changes, including the job progress (in percent – as float number).
  */
 export function mkSquashFs(...squashfsOptions:string[]) {
-  const event:mkSquashFsEvent = new EventEmitter();
+  const event:mkSqFsEvt = new EventEmitter();
   import("child_process").then(child => child.execFile)
     .then(execFile => {
       const mkSquashFS = execFile("mksquashfs", squashfsOptions, {
