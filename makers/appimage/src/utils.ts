@@ -28,7 +28,9 @@ interface mkSqFSListenerArgs {
     /** A returned code when process normally exits. */
     code: number|null,
     /** A signal which closed the process. */
-    signal:NodeJS.Signals|null
+    signal:NodeJS.Signals|null,
+    /** A message printed to STDERR, if available. */
+    msg?:string
   ];
   progress: [
     /** A number from range 0-100 indicating the current progress made on creating the image. */
@@ -191,7 +193,23 @@ export function mkSquashFs(...squashfsOptions:string[]) {
         }
       });
       let lastProgress = 0;
-      mkSquashFS.on("message", (chunk) => {
+      let stderrCollector = "";
+      mkSquashFS.stderr?.on("data", (chunk:unknown) => {
+        switch(true) {
+          //@ts-expect-error falls through
+          case chunk instanceof ArrayBuffer:
+            chunk = Buffer.from(chunk);
+          //@ts-expect-error falls through
+          case chunk instanceof Buffer:
+            chunk = (chunk as Buffer).toString();
+          case chunk instanceof String:
+            stderrCollector+=(chunk as string);
+            break;
+          default:
+            throw new TypeError("Unresolved chunk type.")
+        }
+      })
+      mkSquashFS.stdout?.on("data", (chunk) => {
         const message = chunk.toString();
         const progress = message.match(/\] [0-9/]+ ([0-9]+)%/)?.[1];
         if(progress !== undefined) {
@@ -201,7 +219,11 @@ export function mkSquashFs(...squashfsOptions:string[]) {
               lastProgress = progInt;
         }
       });
-      mkSquashFS.on("close", (...args) => event.emit("close",...args));
+      mkSquashFS.on("close", (...args) => mkSquashFS.emit(
+        "close",
+        ...args,
+        stderrCollector === "" ? undefined : stderrCollector
+      ));
       mkSquashFS.on("error", (error) => event.emit("error", error));
     });
   return event;

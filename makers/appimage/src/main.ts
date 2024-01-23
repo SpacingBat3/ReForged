@@ -340,7 +340,10 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     await new Promise((resolve, reject) => {
       mkdir(dirname(outFile), {recursive: true}).then(() => {
         mkSquashFs(...mkSquashFsArgs)
-        .once("close", (code) => code !== 0 ? reject(new Error(`mksquashfs returned non-zero code: '${code}'`)) : resolve(undefined))
+        .once("close", (code,_signal,msg) => code !== 0 ?
+          reject(new Error(`mksquashfs returned ${msg ? `'${msg}' in stderr` : "non-zero code"} (${code}).`)):
+          resolve(undefined)
+        )
         .once("error", (error) => reject(error));
       }).catch(error => reject(error));
     });
