@@ -16,6 +16,7 @@ import {
   chmod,
   symlink
 } from "fs/promises";
+import { EventEmitter } from "events";
 
 import MakerBase from "@electron-forge/maker-base";
 import sanitizeName from "@spacingbat3/lss";
@@ -93,11 +94,13 @@ const enum RemoteDefaults {
  * ```
  */
 export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerBase<C> {
+  /** @internal */
+  readonly __VndReForgedAPI = 1 as const;
   defaultPlatforms:["linux"] = ["linux"];
   name = "AppImage" as const;
   override requiredExternalBinaries:["mksquashfs"] = ["mksquashfs"];
   override isSupportedOnCurrentPlatform:()=>true = ()=>true;
-  override async make({appName,dir,makeDir,packageJSON,targetArch}: MakerMeta) {
+  override async make({appName,dir,makeDir,packageJSON,targetArch}: MakerMeta, ...vendorExt: unknown[]) {
     const {
       actions,
       categories,
@@ -339,12 +342,17 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
       );
     await new Promise((resolve, reject) => {
       mkdir(dirname(outFile), {recursive: true}).then(() => {
-        mkSquashFs(...mkSquashFsArgs)
-        .once("close", (code,_signal,msg) => code !== 0 ?
-          reject(new Error(`mksquashfs returned ${msg ? `'${msg}' in stderr` : "non-zero code"} (${code}).`)):
-          resolve(undefined)
-        )
-        .once("error", (error) => reject(error));
+        const evtCh = mkSquashFs(...mkSquashFsArgs)
+          .once("close", (code,_signal,msg) => code !== 0 ?
+            reject(new Error(`mksquashfs returned ${msg ? `'${msg}' in stderr` : "non-zero code"} (${code}).`)):
+            resolve(undefined)
+          )
+          .once("error", (error) => reject(error));
+        for(let vndHead; vndHead !== undefined && vndHead !== "RF1"; vndHead=vendorExt.pop());
+        const [vndCh] = vendorExt;
+        // Leak current progress to API consumers if supported
+        if(vndCh instanceof EventEmitter)
+          evtCh.on("progress", percent => vndCh.emit("progress", percent));
       }).catch(error => reject(error));
     });
     // Append runtime to SquashFS image and wait for that task to finish
