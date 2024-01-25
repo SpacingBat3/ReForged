@@ -219,7 +219,7 @@ export function mkSquashFs(...squashfsOptions:string[]) {
               lastProgress = progInt;
         }
       });
-      mkSquashFS.on("close", (...args) => mkSquashFS.emit(
+      mkSquashFS.once("close", (...args) => event.emit(
         "close",
         ...args,
         stderrCollector === "" ? undefined : stderrCollector
