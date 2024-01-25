@@ -1,5 +1,6 @@
 {
   "name": "@reforged/maker-appimage",
+  "type": "module",
   "version": "4.0.0",
   "description": "An AppImage maker implementation for the Electron Forge.",
   "main": "dist/main.js",

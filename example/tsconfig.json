@@ -1,6 +1,7 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
+    "module": "Node16",
     "tsBuildInfoFile": "../cache/tsc/example.json",
     "rootDir": "./",
     "declarationMap": false,
@@ -9,6 +10,6 @@
   },
   "files": [
     "src/index.ts",
-    "forge.config.ts"
+    "forge.config.mts"
   ]
 }

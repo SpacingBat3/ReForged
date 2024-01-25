@@ -18,7 +18,7 @@ import {
 } from "fs/promises";
 import { EventEmitter } from "events";
 
-import MakerBase from "@electron-forge/maker-base";
+import { MakerBase } from "@electron-forge/maker-base";
 import sanitizeName from "@spacingbat3/lss";
 
 import {
@@ -30,10 +30,10 @@ import {
   mapHash,
   getImageMetadata,
   getSquashFsVer
-} from "./utils"
+} from "./utils.js"
 
-import type MakerAppImageConfig from "../types/config";
-import type { MakerMeta } from "./utils";
+import type MakerAppImageConfig from "../types/config.d.ts";
+import type { MakerMeta } from "./utils.js";
 
 const enum RemoteDefaults {
   MirrorHost = 'https://github.com/AppImage/',
@@ -367,9 +367,9 @@ export type {
   MakerAppImageConfig,
   MakerAppImageConfigOptions,
   FreeDesktopCategories
-} from "../types/config";
+} from "../types/config.d.ts";
 
 export type {
   ForgeArch,
   MakerMeta
-} from "./utils";
+} from "./utils.js";

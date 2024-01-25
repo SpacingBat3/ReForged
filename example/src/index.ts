@@ -22,10 +22,10 @@ function createWindow() {
   });
 
   // Load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  mainWindow.loadFile(path.join(app.getAppPath(),'src','index.html'));
 
   // Block opening popup windows.
-  mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
   // Deny all requests (to permissions / devices).
   {

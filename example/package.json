@@ -1,5 +1,6 @@
 {
   "name": "@reforged/example-app",
+  "type": "module",
   "productName": "Example Application",
   "version": "1.0.0",
   "description": "Electron application that uses ReForged makers.",

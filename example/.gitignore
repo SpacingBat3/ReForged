@@ -94,4 +94,6 @@ out/
 
 # TypeScript
 *.js
+*.[mc]js
 *.d.ts
+*.d.[mc]ts

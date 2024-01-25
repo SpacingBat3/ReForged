@@ -6,54 +6,58 @@ for them to finish. A part of the [*Reforged*][2] project.
 
 ## Usage:
 
-Please reffer to [Electron Forge documentation][3] if you don't know about
+Please refer to [Electron Forge documentation][3] if you don't know about
 general Electron Forge configuration.
 
-The maker itself should work *out-of-the-box*, althrough it is recommended to
-at least provide the path of the icon and `categories`. An example relevant part
-of Electron Forge's configuration for this *maker* may look like this:
+The maker itself should work *out-of-the-box* (i.e. you don't have to pass any
+options to it, you only need to add it to Forge config so it will be used),
+although it is recommended to at least provide the path of the icon and
+`categories` for best end-user experience. An example relevant part of Electron
+Forge's configuration for this *maker* may look like this:
+
 ```js
-{
-  name: "@reforged/maker-appimage",
-  config: {
-    options: {
-      // Package name.
-      name: "example-app",
-      // Executable name.
-      bin: "app",
-      // Human-friendly name of the application.
-      productName: "Example Electron Application",
-      // `GenericName` in generated `.desktop` file.
-      genericName: "Example application",
-      // Path to application's icon.
-      icon: "/path/to/icon.png",
-      // Desktop file to be used instead of the configuration above.
-      desktopFile: "/path/to/example-app.desktop",
-      // Release of `AppImage/AppImageKit`, either number or "continuous".
-      AppImageKitRelease: "continuous",
-      // Support parsing Arch Linux '*_flags.conf' file.
-      flagsFile: "true"
-    }
-  }
+import { MakerAppImage } from "@reforged/maker-appimage";
+/* (...) */
+const forgeConfig = {
+  /* (...) */
+  makers: [
+    /* (...) */
+    new MakerAppImage({
+      options: {
+        // Package name.
+        name: "example-app",
+        // Executable name.
+        bin: "app",
+        // Human-friendly name of the application.
+        productName: "Example Electron Application",
+        // `GenericName` in generated `.desktop` file.
+        genericName: "Example application",
+        // Path to application's icon.
+        icon: "/path/to/icon.png",
+        // Desktop file to be used instead of the configuration above.
+        desktopFile: "/path/to/example-app.desktop",
+        // Release of `AppImage/AppImageKit`, either number or "continuous".
+        AppImageKitRelease: "continuous",
+        // Support parsing Arch Linux '*_flags.conf' file.
+        flagsFile: "true"
+      }
+    })
+  ]
 }
 ```
 
-You may also import `MakerAppImageConfig` interface if you wish to verify
-Electron Forge configuration with TypeScript (when declaring it outside of
-`package.json` in JS/TS file) and access JSDoc comments in your editor if it
-supports them.
+## Environment variables:
 
-## Enviroment variables:
-
-As proposed in [#4][4] and originaly documented in [#4 (comment)][5],
-`@reforged/maker-appimage` supports enviroment variables inspired on
+As proposed in [#4][4] and originally documented in [#4 (comment)][5],
+`@reforged/maker-appimage` supports environment variables inspired on
 `@electron/get` to use different mirror or CDN providing the files originally
 published on GitHub as part of `AppImage/AppImageKit` releases:
 
 - `APPIMAGEKIT_MIRROR` – contains base URL from which files are going to be
   downloaded; it should contain protocol and common path on which files
   are hosted. Currently, placeholders are resolved here, but this might be
-  a subject to change.
+  a subject to change (this means using them is unsafe from the point of library
+  consumers).
 
 - `APPIMAGEKIT_CUSTOM_DIR` – should contain optional name of the directory
   in which files should be placed; currently, all placeholders are resolved
@@ -69,8 +73,9 @@ published on GitHub as part of `AppImage/AppImageKit` releases:
 
 - `{{ version }}` – resolves to AppImageKit version tag, e.g. `13`.
 
-- `{{ filename }}` – resolves to generic name of file being part of AppImageKit
-  distributables, e.g. `runtime` or `AppRun`.
+- `{{ filename }}` – resolves to any generic part of the name of files (as seen
+  in AppImageKit releases) that are necessary to craft an AppImage,  e.g.
+  `runtime` or `AppRun`.
 
 - `{{ arch }}` – resolves to AppImage target architecture, e.g. `x86_64`.
 
