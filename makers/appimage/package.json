@@ -23,7 +23,6 @@
   "dependencies": {
     "@electron-forge/maker-base": "^6.0.0 || ^7.0.0",
     "@spacingbat3/lss": "^1.0.0",
-    "node-fetch": "^3.2.5",
     "semver": "^7.3.8"
   },
   "types": "./types/main.d.ts",
@@ -31,6 +30,6 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=19.0.0 || ^18.11.0 || ^16.1.0"
+    "node": ">=19.0.0 || ^18.11.0"
   }
 }

@@ -35,17 +35,6 @@ import {
 import type MakerAppImageConfig from "../types/config";
 import type { MakerMeta } from "./utils";
 
-/**
- * A fetch-alike implementation used in this module, will be native API if
- * present or otherwise `node-fetch`.
- */
-const nodeFetch = (() => {
-  const fetchModule = import("node-fetch").then(fetch => fetch.default);
-  if((globalThis as unknown as {fetch?:Awaited<typeof fetchModule>}).fetch !== undefined)
-    return (url:string)=>(globalThis as unknown as {fetch:Awaited<typeof fetchModule>}).fetch(url)
-  return async (url:string) => (await fetchModule)(url);
-})()
-
 const enum RemoteDefaults {
   MirrorHost = 'https://github.com/AppImage/',
   MirrorPath = '/releases/download/',
@@ -161,7 +150,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
     const sources = Object.freeze({
       /** Details about the AppImage runtime. */
       runtime: Object.freeze({
-        data: nodeFetch(parseMirror(`${remote.mirror.runtime}${remote.dir}/${remote.file}`,currentTag,"runtime"))
+        data: fetch(parseMirror(`${remote.mirror.runtime}${remote.dir}/${remote.file}`,currentTag,"runtime"))
           .then(response => {
             if(response.ok)
               return response.arrayBuffer()
@@ -172,7 +161,7 @@ export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerB
       }),
       /** Details about AppRun ELF executable, used to start the app. */
       AppRun: Object.freeze({
-        data: nodeFetch(parseMirror(`${remote.mirror.AppRun}${remote.dir}/${remote.file}`,currentTag,"AppRun"))
+        data: fetch(parseMirror(`${remote.mirror.AppRun}${remote.dir}/${remote.file}`,currentTag,"AppRun"))
           .then(response => {
             if(response.ok)
               return response.arrayBuffer()
