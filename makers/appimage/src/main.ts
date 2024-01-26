@@ -82,7 +82,7 @@ const enum RemoteDefaults {
  * }
  * ```
  */
-export default class MakerAppImage<C extends MakerAppImageConfig> extends MakerBase<C> {
+export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
   /** @internal */
   readonly __VndReForgedAPI = 1 as const;
   defaultPlatforms:["linux"] = ["linux"];
