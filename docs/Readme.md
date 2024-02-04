@@ -37,7 +37,7 @@ project are:
 ## License
 
 For information on which software licenses may the ReForged project be
-distributed, see [`docs/COPYING.md`](./COPYING.md) file.
+distributed, see [`COPYING`](../COPYING) file.
 
 [forge]: https://github.com/electron/forge
 [maker1]: https://www.npmjs.com/package/@reforged/maker-appimage
