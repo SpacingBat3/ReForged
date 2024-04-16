@@ -3,6 +3,8 @@
   "compilerOptions": {
     "module": "Node16",
     "tsBuildInfoFile": "../cache/tsc/example.json",
+    "moduleResolution": "Node16",
+    "target": "ES2022",
     "rootDir": "./",
     "declarationMap": false,
     "sourceMap": false,

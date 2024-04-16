@@ -1,11 +1,14 @@
 {
   "name": "@reforged/maker-appimage",
-  "type": "module",
   "version": "4.0.2",
   "description": "An AppImage maker implementation for the Electron Forge.",
-  "main": "dist/main.js",
+  "main": "./dist/cjs/main.js",
+  "module": "./dist/esm/main.js",
+  "types": "./types/main.d.ts",
   "scripts": {
-    "prepack": "tsc"
+    "prepack": "npm run prepack:esm && npm run prepack:cjs",
+    "prepack:esm": "tsc --module es2022 --moduleResolution bundler --target es2022 --outDir ./dist/esm",
+    "prepack:cjs": "tsc --module commonjs --moduleResolution node --target es2022 --outDir ./dist/cjs"
   },
   "repository": {
     "type": "git",
@@ -26,11 +29,17 @@
     "@spacingbat3/lss": "^1.0.0",
     "semver": "^7.3.8"
   },
-  "types": "./types/main.d.ts",
   "publishConfig": {
     "access": "public"
   },
   "engines": {
     "node": ">=19.0.0 || ^18.11.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/esm/main.js",
+      "require": "./dist/cjs/main.js",
+      "types": "./types/main.d.ts"
+    }
   }
 }

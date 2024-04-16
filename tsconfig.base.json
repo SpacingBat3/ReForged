@@ -3,13 +3,11 @@
   "compilerOptions": {
     "composite": true,
     "incremental": true,
-    "module": "Node16",
-    "moduleResolution": "Node16",
-    "target": "ES2022",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "stripInternal": true,
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+    "lib": ["ES2021.String"]
   }
 }
