@@ -89,7 +89,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
   name = "AppImage" as const;
   override requiredExternalBinaries:["mksquashfs"] = ["mksquashfs"];
   override isSupportedOnCurrentPlatform:()=>true = ()=>true;
-  override async make({appName,dir,makeDir,packageJSON,targetArch}: MakerMeta, ...vendorExt: unknown[]) {
+  override async make({appName,dir,makeDir,packageJSON,targetArch}: MakerMeta, ...vendorExt: unknown[]): Promise<[AppImagePath:string]> {
     const {
       actions,
       categories,
@@ -359,6 +359,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
     return [outFile];
   }
 }
+
 export {
   MakerAppImage
 };
