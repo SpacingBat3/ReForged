@@ -10,6 +10,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "stripInternal": true,
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+    "isolatedModules": false
   }
 }

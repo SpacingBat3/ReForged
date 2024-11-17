@@ -4,7 +4,7 @@
     "tsBuildInfoFile": "../../cache/tsc/maker-appimage.json",
     "outDir": "./dist",
     "rootDir": "./src",
-    "declarationDir": "./types",
+    "declarationDir": "./types"
   },
   "files": [
     "src/main.ts",
