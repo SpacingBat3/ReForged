@@ -4,6 +4,7 @@
   "description": "A set of Electron Forge tools, makers and publishers (project package).",
   "scripts": {
     "build": "tsc -b",
+    "test": "tsc -b tsconfig.test.json && NODE_NO_WARNINGS=1 node --test --experimental-strip-types",
     "docs": "typedoc"
   },
   "repository": {

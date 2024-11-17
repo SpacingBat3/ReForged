@@ -5,7 +5,8 @@
   "description": "An AppImage maker implementation for the Electron Forge.",
   "main": "dist/main.js",
   "scripts": {
-    "prepack": "tsc"
+    "prepack": "tsc",
+    "test": "tsc -b tsconfig.test.json && NODE_NO_WARNINGS=1 node --test --experimental-strip-types"
   },
   "repository": {
     "type": "git",

@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "../../cache/tsc/maker-appimage.json",
+    "rootDir": "./test",
+    "noEmit": true
+  },
+  "files": [
+    "test/make.ts",
+    "test/struct.ts"
+  ]
+}
