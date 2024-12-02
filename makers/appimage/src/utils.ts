@@ -1,5 +1,4 @@
 import EventEmitter from "events";
-import { createHash, getHashes } from "crypto";
 import { Mode, existsSync } from "fs";
 import { execFileSync } from "child_process";
 
@@ -398,17 +397,4 @@ export function getImageMetadata(image:Buffer):ImageMetadata {
   if(validateImageMetadata(partialMeta))
     return partialMeta;
   throw new TypeError("Malformed function return type! ("+JSON.stringify(partialMeta)+").");
-}
-
-export function setChecksum(runtime:ArrayBuffer|Buffer,squashfs:Buffer): Buffer {
-  if(!getHashes().includes("md5"))
-    throw new Error("Current Node.js binary doesn't support \"md5\" digest algorithm.")
-  const hashHeader = ".digest_md5";
-  const buffer = runtime instanceof Buffer ? runtime : Buffer.from(runtime);
-  const hashOffset = buffer.indexOf(hashHeader)+hashHeader.length;
-  return Buffer.concat([
-    buffer.subarray(0,hashOffset),
-    createHash("md5").update(squashfs).digest(),
-    buffer.subarray(hashOffset)
-  ]);
 }

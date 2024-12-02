@@ -2,14 +2,14 @@
 
 import { createHash, getHashes } from "crypto";
 import { tmpdir } from "os";
-import { resolve, dirname, extname, relative } from "path";
+import { resolve, extname, relative } from "path";
 import {
-  mkdtempSync,
   existsSync,
   rmSync
 } from "fs";
 import {
   mkdir,
+  mkdtemp,
   writeFile,
   copyFile,
   readFile,
@@ -89,14 +89,11 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
   name = "AppImage" as const;
   override requiredExternalBinaries:["mksquashfs"] = ["mksquashfs"];
   override isSupportedOnCurrentPlatform:()=>true = ()=>true;
-  override async make({appName,dir,makeDir,packageJSON,targetArch}: MakerMeta, ...vendorExt: unknown[]): Promise<[AppImagePath:string]> {
+  override async make({
+    appName, dir, makeDir, packageJSON, targetArch
+  }: MakerMeta, ...vendorExt: unknown[]): Promise<[AppImagePath:string]> {
     const {
-      actions,
-      categories,
-      compressor,
-      genericName,
-      flagsFile,
-      type2runtime
+      actions, categories, compressor, genericName, flagsFile, type2runtime
     } = (this.config.options ?? {});
     const appImageArch = mapArch(targetArch);
     function parseMirror(string:string,version:typeof currentTag,filename:string|null=null) {
@@ -211,7 +208,6 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         `echo "$ARGV" | exec xargs "$USR/lib/${name}/${binShell}"`
       )
     }
-    this.ensureFile(outFile);
     // Verify if there's a `bin` file in packaged application.
     if(!existsSync(resolve(dir, bin)))
       throw new Error([
@@ -220,15 +216,15 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         "in Forge config are pointing to valid file."
       ].join(" "));
     /** A temporary directory used for the packaging. */
-    const workDir = mkdtempSync(resolve(tmpdir(), `.${productName}-${packageJSON.version}-${targetArch}-`));
+    const workDir = await mkdtemp(resolve(tmpdir(), `.${productName}-${packageJSON.version}-${targetArch}-`));
     const iconMeta = icon ? readFile(icon).then(icon => getImageMetadata(icon)) : Promise.resolve(undefined);
     {
       let cleanup = () => {
         cleanup = () => {};
         rmSync(workDir, {recursive: true});
       }
-      process.on("uncaughtExceptionMonitor", cleanup);
-      process.on("exit", cleanup);
+      process.once("uncaughtExceptionMonitor", cleanup);
+      process.once("exit", cleanup);
     }
     process.on("SIGINT", () => {
       console.error("User interrupted the process.");
@@ -330,7 +326,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         "16384"
       );
     await new Promise((resolve, reject) => {
-      mkdir(dirname(outFile), {recursive: true}).then(() => {
+      this.ensureFile(outFile).then(() => {
         const evtCh = mkSquashFs(...mkSquashFsArgs)
           .once("close", (code,_signal,msg) => code !== 0 ?
             reject(new Error(`mksquashfs returned ${msg ? `'${msg}' in stderr` : "non-zero code"} (${code}).`)):
