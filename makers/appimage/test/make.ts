@@ -39,32 +39,36 @@ const maker = new MakerAppImage();
 await maker.prepareConfig(process.arch);
 
 // Mock app metadata
-const packageJSON = {
-  name:"mock-app",
-  productName: "Mock Electron App",
-  version:"0.0.0-mock"
-}
-const mockAppPath = mkdtemp(resolve(tmpdir(),`${packageJSON.name}-src-`))
-// Initialize mock application data
-  .then(path => {
-    // Mock executable.
-    writeFile(resolve(path,packageJSON.name),[
-      "#!/usr/bin/sh -e",
-      "echo 'Hello world!';"
-    ].join("\n"),{ mode:0o755 })
-    return path;
-  });
-const mockMkPath = mkdtemp(resolve(tmpdir(),`${packageJSON.name}-make-`));
-const forgeConfig = {
-  makers:[maker],
-  plugins:[],
-  publishers:[],
-  packagerConfig:{},
-  rebuildConfig:{},
-  get pluginInterface():never {
-    throw new Error("Unsupported mock property access: 'pluginInterface'.");
-  }
-}
+const
+  packageJSON = {
+    name:"mock-app",
+    productName: "Mock Electron App",
+    version:"0.0.0-mock"
+  },
+  // Valid mock Forge config
+  forgeConfig = {
+    makers: [maker],
+    plugins: [],
+    publishers: [],
+    packagerConfig: {},
+    rebuildConfig: {},
+    get pluginInterface():never {
+      throw new Error("Unsupported mock property access: 'pluginInterface'.");
+    }
+  },
+  mockMkPath = mkdtemp(resolve(tmpdir(),`${packageJSON.name}-make-`)),
+  mockAppPath = mkdtemp(resolve(tmpdir(),`${packageJSON.name}-src-`))
+  // Initialize mock application data
+    .then(path => {
+      // Mock executable.
+      writeFile(resolve(path,packageJSON.name),[
+        "#!/usr/bin/sh -e",
+        "echo 'Hello world!';"
+      ].join("\n"),{ mode:0o755 })
+      return path;
+    });
+
+
 
 /** Cleanup hook after Electron mock make process. */
 async function cleanup() {
@@ -72,20 +76,23 @@ async function cleanup() {
   rm(await mockMkPath,{recursive:true});
 }
 
-//
-let AResolve: (arg0: string) => any, AReject: (reason?: unknown) => void;
-const AppImageDir:Promise<string> = new Promise(
-  (resolve,reject) => { AResolve = resolve, AReject = reject }
-);
+/** Suite promises */
+const suites:Promise<void>[] = [];
 
+/** Whenever to skip functional tests (and a reason to do so). */
+const skip = maker.isSupportedOnCurrentPlatform() ?
+  maker.externalBinariesExist() ?
+  false :
+  `One or more binaries are missing: ${maker.requiredExternalBinaries.join(', ')}` :
+  `Unsupported platform: ${process.platform}-${process.arch}`;
 
-describe("MakerAppimage is working correctly", {
-  skip: maker.isSupportedOnCurrentPlatform() ?
-    maker.externalBinariesExist() ?
-    false :
-    `One or more binaries are missing: ${maker.requiredExternalBinaries.join(', ')}` :
-    `Unsupported platform: ${process.platform}-${process.arch}`
-}, () => {
+suites.push(describe("MakerAppimage is working correctly", {skip}, () => {
+  let AResolve: (arg0: string) => any, AReject: (reason?: unknown) => void;
+  /** Resolved output of successful make, to re-use it in another tests. */
+  const AppImageDir:Promise<string> = new Promise(
+    (resolve,reject) => { AResolve = resolve, AReject = reject }
+  );
+
   it("should create valid AppImage binary", async() => {
     maker.make({
       packageJSON,
@@ -131,4 +138,71 @@ describe("MakerAppimage is working correctly", {
     await assert.doesNotReject(cp);
     assert.strictEqual((await cp).stdout,"Hello world!\n")
   })
-}).then(cleanup);
+}));
+
+suites.push(describe("MakerAppImage fails for invalid cases", {skip}, () => {
+  /** List of validation functions for error rejections. */
+  const err = {
+    noExecutable: (err:Error|null|undefined) => {
+      assert.strictEqual(err?.constructor, Error);
+      assert.strictEqual(err?.name, "Error");
+      assert.ok(String.prototype.startsWith.call(
+        err.message,
+        "Could not find executable"
+      ));
+      return true;
+    },
+    unsupportedArch: (err:Error|null|undefined) => {
+      assert.strictEqual(err?.constructor, Error);
+      assert.strictEqual(err.name, "Error");
+      assert.strictEqual(
+        err.message,
+        "Unsupported architecture: 'wrong-arch'."
+      )
+      return true;
+    }
+  }
+
+  it("should fail when configured binary name does not exist", async() => {
+    const maker = new MakerAppImage({options:{bin:"invalid"}});
+    await maker.prepareConfig(process.arch);
+    const failedAttempt = maker.make({
+      packageJSON,
+      forgeConfig,
+      appName: packageJSON.productName,
+      dir: await mockAppPath,
+      makeDir: await mockMkPath,
+      targetArch: process.arch as ForgeArch,
+      targetPlatform: process.platform
+    });
+    await assert.rejects(failedAttempt, err.noExecutable);
+  })
+
+  it("should fail when path to the app does not exist", async() => {
+    const failedAttempt = maker.make({
+      packageJSON,
+      forgeConfig,
+      appName: packageJSON.productName,
+      dir: resolve("/","invalid"),
+      makeDir: await mockMkPath,
+      targetArch: process.arch as ForgeArch,
+      targetPlatform: process.platform
+    });
+    await assert.rejects(failedAttempt, err.noExecutable);
+  }),
+
+  it("should fail for invalid architectures", async() => {
+    const failedAttempt = maker.make({
+      packageJSON,
+      forgeConfig,
+      appName: packageJSON.productName,
+      dir: await mockAppPath,
+      makeDir: await mockMkPath,
+      targetArch: "wrong-arch" as ForgeArch,
+      targetPlatform: process.platform
+    });
+    await assert.rejects(failedAttempt, err.unsupportedArch);
+  })
+}));
+
+await Promise.all(suites).finally(() => cleanup());
