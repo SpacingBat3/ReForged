@@ -18,6 +18,7 @@ import {
 } from "fs/promises";
 import { EventEmitter } from "events";
 
+import { debug, format } from "util";
 import { MakerBase } from "@electron-forge/maker-base";
 import sanitizeName from "@spacingbat3/lss";
 
@@ -34,6 +35,7 @@ import {
 
 import type MakerAppImageConfig from "../types/config.d.ts";
 import type { MakerMeta } from "./utils.js";
+import type { DebugLoggerFunction } from "util";
 
 const enum RemoteDefaults {
   MirrorHost = 'https://github.com/AppImage/',
@@ -46,6 +48,18 @@ const enum RemoteDefaults {
   FileName = "{{ filename }}-{{ arch }}",
 }
 
+const d:DebugLoggerFunction = (() => {
+  if(debug("reforged:maker-appimage").enabled || /(?:^|,)(?:\*|reforged:(?:\*|maker-appimage))(?:$|,)/
+      .test(process.env["DEBUG"]??""))
+    // Function that logs similarly to debugLog.
+    return (...args:unknown[]) => console.error(
+      "@reforged/maker-appimage %o: %s",
+      process.pid,
+      format(...args)
+    );
+  // NO-OP function
+  return () => {};
+})()
 
 /**
  * An AppImage maker for Electron Forge.
@@ -92,6 +106,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
   override async make({
     appName, dir, makeDir, packageJSON, targetArch
   }: MakerMeta, ...vendorExt: unknown[]): Promise<[AppImagePath:string]> {
+    d("Initializing maker metadata.")
     const {
       actions, categories, compressor, genericName, flagsFile, type2runtime
     } = (this.config.options ?? {});
@@ -149,6 +164,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       runtime: Object.freeze({
         data: fetch(parseMirror(`${remote.mirror.runtime}${remote.dir}/${remote.file}`,currentTag,"runtime"))
           .then(response => {
+            d("Fetched AppImage runtime from mirror.")
             if(response.ok)
               return response.arrayBuffer()
             else
@@ -160,6 +176,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       AppRun: Object.freeze({
         data: fetch(parseMirror(`${remote.mirror.AppRun}${remote.dir}/${remote.file}`,currentTag,"AppRun"))
           .then(response => {
+            d("Fetched AppImage AppRun from mirror.")
             if(response.ok)
               return response.arrayBuffer()
             else
@@ -240,6 +257,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       )
     }
     const iconPath = icon ? resolve(workDir, name+extname(icon)) : undefined;
+    d("Queuing asynchronous jobs batches.")
     /** First-step jobs, which does not depend on any other job. */
     const earlyJobs = [
       // Create further directory tree (0,1,2)
@@ -249,9 +267,9 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         .then(path => path ? mkdir(path, {recursive: true, mode: 0o755}).then(() => path) : undefined),
       // Save `.desktop` to file (3)
       sources.desktop
-        .then(data => writeFile(
+        .then(data => (d("Writing '.desktop' file to 'workDir'."),writeFile(
           resolve(workDir, productName+'.desktop'), data, {mode:0o755, encoding: "utf-8"})
-        ),
+        )),
       // Verify and save `AppRun` to file (4)
       sources.AppRun.data
         .then(data => {
@@ -265,6 +283,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
             if(hash !== sources.AppRun.md5)
               throw new Error("AppRun hash mismatch.");
           }
+          d("Writing AppRun to file.")
           return writeFile(resolve(workDir, 'AppRun'), buffer, {mode: 0o755});
         }),
       // Save icon to file and symlink it as `.DirIcon` (5)
@@ -284,7 +303,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         }),
       // Copy Electron app to AppImage directories
       earlyJobs[0]
-        .then(() => copyPath(dir, directories.data, 0o755)),
+        .then(() => (d("Copying Electron app data."),copyPath(dir, directories.data, 0o755))),
       // Copy icon to `usr` directory whenever possible
       Promise.all([earlyJobs[2],earlyJobs[5]])
         .then(([path]) => icon && path ?
@@ -294,8 +313,10 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       // Ensure that root folder has proper file mode
       chmod(workDir, 0o755)
     ] as const;
+    d("Waiting for queued jobs to finish.")
     // Wait for early/late jobs to finish
     await(Promise.all([...earlyJobs,...lateJobs]));
+    d("Preparing 'mksquashfs' arguments for data image generation.")
     // Run `mksquashfs` and wait for it to finish
     const mkSquashFsArgs = [workDir, outFile];
     const mkSquashFsVer = getSquashFsVer();
@@ -325,6 +346,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         "-b",
         "16384"
       );
+    d("Queuing 'mksquashfs' task.")
     await new Promise((resolve, reject) => {
       this.ensureFile(outFile).then(() => {
         const evtCh = mkSquashFs(...mkSquashFsArgs)
@@ -340,6 +362,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
           evtCh.on("progress", percent => vndCh.emit("progress", percent));
       }).catch(error => reject(error));
     });
+    d("Merging AppImage data and runtime into single file.")
     // Append runtime to SquashFS image and wait for that task to finish
     await sources.runtime.data
       //TODO: Find how properly embed MD5 or SHA256 signatures
