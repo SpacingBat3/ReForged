@@ -256,17 +256,25 @@ export function getSquashFsVer() {
 /**
  * Concatenates files and/or buffers into a new buffer.
  */
-export async function joinFiles(...filesAndBuffers:(string|Buffer)[]) {
+export async function joinFiles(...filesAndBuffers:(string|ArrayBufferLike|Uint8Array)[]) {
   const {readFile} = await import("fs/promises");
-  const bufferArray: Promise<Buffer>[] = [];
+  const bufferArray: Promise<Uint8Array>[] = [];
   for(const path of filesAndBuffers)
-    if(Buffer.isBuffer(path))
-      bufferArray.push(Promise.resolve(path));
-    else if (existsSync(path))
+    if(path instanceof <Uint8ArrayConstructor>Object.getPrototypeOf(Uint8Array))
+      bufferArray.push(Promise.resolve(new Uint8Array(path.buffer)));
+    else if(path instanceof ArrayBuffer || path instanceof SharedArrayBuffer)
+      bufferArray.push(Promise.resolve(new Uint8Array(path)));
+    else if(existsSync(path))
       bufferArray.push(readFile(path));
     else
       throw new Error(`Unable to concat '${path}': Invalid path.`);
-  return Promise.all(bufferArray).then(array => Buffer.concat(array))
+  return Promise.all(bufferArray)
+    .then(array => new Uint8Array(
+      new Array<number>().concat(
+        ...array.map(v => [...v])
+      )
+    )
+  )
 }
 
 /**

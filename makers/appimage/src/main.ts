@@ -348,7 +348,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
           setChecksum(runtime, await readFile(outFile)) :
           runtime
       )*/
-      .then(runtime => joinFiles(Buffer.from(runtime),outFile))
+      .then(runtime => joinFiles(runtime,outFile))
       .then(buffer => writeFile(outFile, buffer))
       .then(() => chmod(outFile, 0o755))
     // Finally, return a path to maker artifacts
