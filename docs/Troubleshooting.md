@@ -33,3 +33,4 @@ Also see [Forge's `Support.md`][forge] for more information about the logging
 of each Forge's components.
 
 [docs]: https://nodejs.org/api/util.html#utildebuglogsection-callback "util.debuglog in Node.js API Documentation"
+[forge]: https://github.com/electron/forge/blob/main/SUPPORT.md
