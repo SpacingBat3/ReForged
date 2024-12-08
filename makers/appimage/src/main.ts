@@ -14,7 +14,8 @@ import {
   copyFile,
   readFile,
   chmod,
-  symlink
+  symlink,
+  rm
 } from "fs/promises";
 import { EventEmitter } from "events";
 
@@ -232,21 +233,24 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         "Make sure 'packagerConfig.executableName' or 'config.options.bin'",
         "in Forge config are pointing to valid file."
       ].join(" "));
+    /** Icon metadata, ie. detected dimensions and filetype. */
+    const iconMeta = icon ? readFile(icon).then(icon => getImageMetadata(icon)) : Promise.resolve(undefined);
     /** A temporary directory used for the packaging. */
     const workDir = await mkdtemp(resolve(tmpdir(), `.${productName}-${packageJSON.version}-${targetArch}-`));
-    const iconMeta = icon ? readFile(icon).then(icon => getImageMetadata(icon)) : Promise.resolve(undefined);
-    {
-      let cleanup = () => {
-        cleanup = () => {};
-        rmSync(workDir, {recursive: true});
+    d("Setup cleanup hooks for error scenarios.")
+    const [cleanupHook, cleanupSyncHook] = (() => {
+      let cleanup = async () => {
+        cleanup = async () => {};
+        await rm(workDir, {recursive: true});
       }
-      process.once("uncaughtExceptionMonitor", cleanup);
-      process.once("exit", cleanup);
-    }
-    process.on("SIGINT", () => {
-      console.error("User interrupted the process.");
-      process.exit(130);
-    })
+      return [
+        () => cleanup(),
+        () => void (existsSync(workDir) && rmSync(workDir, {recursive: true})) as void
+      ] as const;
+    })()
+    process.once("uncaughtExceptionMonitor", cleanupHook);
+    process.once("exit", cleanupSyncHook);
+    process.once("SIGINT", () => {throw new Error("User interrupted the process.")});
     const directories = {
       lib: resolve(workDir, 'usr/lib/'),
       data: resolve(workDir, 'usr/lib/', name),
@@ -362,6 +366,10 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
           evtCh.on("progress", percent => vndCh.emit("progress", percent));
       }).catch(error => reject(error));
     });
+    d("Cleanup temporary work directory.")
+    await cleanupHook();
+    process.off("uncaughtExceptionMonitor",cleanupHook);
+    process.off("exit", cleanupSyncHook);
     d("Merging AppImage data and runtime into single file.")
     // Append runtime to SquashFS image and wait for that task to finish
     await sources.runtime.data
@@ -374,7 +382,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       .then(runtime => joinFiles(runtime,outFile))
       .then(buffer => writeFile(outFile, buffer))
       .then(() => chmod(outFile, 0o755))
-    // Finally, return a path to maker artifacts
+    // Finally, return paths to maker artifacts
     return [outFile];
   }
 }
