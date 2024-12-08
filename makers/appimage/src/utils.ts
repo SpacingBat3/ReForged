@@ -1,5 +1,6 @@
 import EventEmitter from "events";
 import { Mode, existsSync } from "fs";
+import { readFile } from "fs/promises";
 import { execFileSync } from "child_process";
 
 import { coerce } from "semver";
@@ -256,25 +257,29 @@ export function getSquashFsVer() {
 /**
  * Concatenates files and/or buffers into a new buffer.
  */
-export async function joinFiles(...filesAndBuffers:(string|ArrayBufferLike|Uint8Array)[]) {
-  const {readFile} = await import("fs/promises");
-  const bufferArray: Promise<Uint8Array>[] = [];
+export async function joinFiles(...filesAndBuffers:readonly(string|ArrayBufferLike|Uint8Array)[]) {
+  const buffArr = <Promise<Uint8Array>[]>[];
   for(const path of filesAndBuffers)
+    // Convert anything to Uint8Array as buffer representation
     if(path instanceof <Uint8ArrayConstructor>Object.getPrototypeOf(Uint8Array))
-      bufferArray.push(Promise.resolve(new Uint8Array(path.buffer)));
+      buffArr.push(Promise.resolve(new Uint8Array(path.buffer)));
     else if(path instanceof ArrayBuffer || path instanceof SharedArrayBuffer)
-      bufferArray.push(Promise.resolve(new Uint8Array(path)));
+      buffArr.push(Promise.resolve(new Uint8Array(path)));
     else if(existsSync(path))
-      bufferArray.push(readFile(path));
+      buffArr.push(readFile(path));
     else
       throw new Error(`Unable to concat '${path}': Invalid path.`);
-  return Promise.all(bufferArray)
-    .then(array => new Uint8Array(
-      new Array<number>().concat(
-        ...array.map(v => [...v])
-      )
-    )
-  )
+  return Promise.all(buffArr)
+    .then(buffArr => {
+      // Concat all buffers into the new ones.
+      const length = buffArr.reduce((p,c)=>p+c.length,0);
+      const result = new Uint8Array(length);
+      let preBuffLen = 0;
+      for(const buff of buffArr)
+        result.set(buff,preBuffLen),
+        preBuffLen=buff.length;
+      return result;
+    });
 }
 
 /**
