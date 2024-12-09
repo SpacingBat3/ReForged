@@ -18,6 +18,7 @@ import {
   constants,
   mkdtemp,
   open,
+  readdir,
   rm,
   writeFile
 } from "node:fs/promises";
@@ -56,7 +57,7 @@ const
       throw new Error("Unsupported mock property access: 'pluginInterface'.");
     }
   },
-  mockMkPath = mkdtemp(resolve(tmpdir(),`${packageJSON.name}-make-`)),
+  mockMkPath = resolve(tmpdir(),`${packageJSON.name}-make-`),
   mockAppPath = mkdtemp(resolve(tmpdir(),`${packageJSON.name}-src-`))
   // Initialize mock application data
     .then(path => {
@@ -72,8 +73,10 @@ const
 
 /** Cleanup hook after Electron mock make process. */
 async function cleanup() {
-  rm(await mockAppPath,{recursive:true});
-  rm(await mockMkPath,{recursive:true});
+  const promises = new Array<Promise<void>>();
+  promises.push(rm(await mockAppPath,{recursive:true}));
+  promises.push(rm(mockMkPath,{recursive:true}));
+  await Promise.allSettled(promises);
 }
 
 /** Suite promises */
@@ -93,7 +96,7 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, () => {
     (resolve,reject) => { AResolve = resolve, AReject = reject }
   );
 
-  it("should create valid AppImage binary", async() => {
+  it("creates valid AppImage binary", async() => {
     maker.make({
       packageJSON,
       forgeConfig,
@@ -117,7 +120,17 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, () => {
     )
   });
 
-  it("should resulting AppImage be an ELF file", async() => {
+  it("cleans-up workDir after completion", async () => {
+    await AppImageDir;
+    assert.ok(
+      // We know workDir is somewhere in tmpdir, but not really its exact path.
+      // Hence fail for all possible workDir matches.
+      !(await readdir(tmpdir()))
+        .some(dir => dir.startsWith(`.${packageJSON.productName}-${packageJSON.version}-${process.arch}-`))
+    )
+  })
+
+  it("outputs AppImage that is an ELF file", async() => {
     const fd = await open(await AppImageDir);
     const buff = new Uint8Array(8);
     await fd.read(buff,0,8);
@@ -129,7 +142,7 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, () => {
     fd.close();
   })
 
-  it("should AppImage be runnable and working fine", async ctx => {
+  it("outputs AppImage that is runnable and working fine", async ctx => {
     const exec = promisify(execFile);
     // Skip this test for non-exec tmpdir.
     if(await access(await AppImageDir,constants.X_OK).then(_=>false,_=>true))
@@ -163,7 +176,7 @@ suites.push(describe("MakerAppImage fails for invalid cases", {skip}, () => {
     }
   }
 
-  it("should fail when configured binary name does not exist", async() => {
+  it("rejects when configured binary name does not exist", async() => {
     const maker = new MakerAppImage({options:{bin:"invalid"}});
     await maker.prepareConfig(process.arch);
     const failedAttempt = maker.make({
@@ -178,7 +191,7 @@ suites.push(describe("MakerAppImage fails for invalid cases", {skip}, () => {
     await assert.rejects(failedAttempt, err.noExecutable);
   })
 
-  it("should fail when path to the app does not exist", async() => {
+  it("rejects when path to the app does not exist", async() => {
     const failedAttempt = maker.make({
       packageJSON,
       forgeConfig,
@@ -191,7 +204,7 @@ suites.push(describe("MakerAppImage fails for invalid cases", {skip}, () => {
     await assert.rejects(failedAttempt, err.noExecutable);
   }),
 
-  it("should fail for invalid architectures", async() => {
+  it("rejects an error for invalid architectures", async() => {
     const failedAttempt = maker.make({
       packageJSON,
       forgeConfig,

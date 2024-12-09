@@ -9,28 +9,31 @@ import { describe, it } from "node:test";
 import assert from "node:assert";
 import MakerAppImage from "@reforged/maker-appimage";
 
-describe("MakerAppImage is valid object", () => {
+describe("MakerAppImage has valid structure", () => {
   const maker = new MakerAppImage();
+  const proto = MakerAppImage.prototype;
 
   it("extends MakerBase object directly", async() => {
     const { MakerBase } = await import("@electron-forge/maker-base");
     assert.strictEqual(Object.getPrototypeOf(MakerAppImage),MakerBase);
   })
-
-  it("has name of the distributable format, AppImage", () => {
+  it("has the same name as the name of the distributable format", () => {
     assert.strictEqual(maker.name,"AppImage");
   })
-
   it("supports being built on Linux only by the default", () => {
     assert.deepStrictEqual(maker.defaultPlatforms,["linux"])
   })
-
-  it("has a 'make' method", async ctx => {
-    await ctx.test("should be an asynchronous function", () => {
-      assert.strictEqual(maker.make.constructor, (async()=>{}).constructor);
+  
+  describe("has a 'make' method", () => {
+    it("is defined in class prototype", () => {
+      assert.ok("make" in proto);
+      assert.notStrictEqual(proto.make??undefined, undefined);
     })
-    await ctx.test("should be given at least one argument", () => {
-      assert.strictEqual(maker.make.length, 1);
+    it("is an asynchronous function", () => {
+      assert.strictEqual(proto.make.constructor, (async()=>{}).constructor);
+    })
+    it("requires at least one argument", () => {
+      assert.strictEqual(proto.make.length, 1);
     })
   })
 })
