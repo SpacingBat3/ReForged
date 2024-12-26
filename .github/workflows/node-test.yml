@@ -25,5 +25,19 @@ jobs:
         run: "npm ci"
       - name: Build project
         run: "npm run build"
-      - name: Run tests
-        run: "npm test"
+      - name: Run tests with coverage+test reporting
+        run: |
+          npm test -- --experimental-test-coverage \
+            --test-reporter=lcov --test-reporter-destination=lcov.info \
+            --test-reporter=spec --test-reporter-destination=stdout \
+            --test-reporter=junit --test-reporter-destination=junit.xml
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: SpacingBat3/ReForged
+      - name: Upload test results to CodeCov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
