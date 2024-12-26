@@ -35,9 +35,12 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: SpacingBat3/ReForged
+          disable_search: true
+          files: lcov.info
       - name: Upload test results to CodeCov
         if: ${{ !cancelled() }}
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          disable_search: true
+          file: junit.xml
