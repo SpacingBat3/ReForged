@@ -1,4 +1,8 @@
-<div align="center">
+<div align="right">
+
+[![CodeCov](https://codecov.io/gh/SpacingBat3/ReForged/graph/badge.svg?token=83BCHPFQHS)](https://codecov.io/gh/SpacingBat3/ReForged)
+
+</div><div align="center">
 
 [![ReForged Icon](https://user-images.githubusercontent.com/57194920/216773020-10a50af0-91f2-4956-9598-c10a3f61a355.svg)](https://github.com/SpacingBat3/ReForged#readme)
 
