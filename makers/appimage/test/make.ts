@@ -57,7 +57,7 @@ const
       throw new Error("Unsupported mock property access: 'pluginInterface'.");
     }
   },
-  mockMkPath = resolve(tmpdir(),`${packageJSON.name}-make-`),
+  mockMkPath = mkdtemp(resolve(tmpdir(),`${packageJSON.name}-make-`)),
   mockAppPath = mkdtemp(resolve(tmpdir(),`${packageJSON.name}-src-`))
   // Initialize mock application data
     .then(path => {
@@ -75,7 +75,7 @@ const
 async function cleanup() {
   const promises = new Array<Promise<void>>();
   promises.push(rm(await mockAppPath,{recursive:true}));
-  promises.push(rm(mockMkPath,{recursive:true}));
+  promises.push(rm(await mockMkPath,{recursive:true}));
   await Promise.allSettled(promises);
 }
 
