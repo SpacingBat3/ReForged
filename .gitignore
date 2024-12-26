@@ -14,3 +14,11 @@ makers/*/types/*
 *.tgz
 # Ignore typedoc files
 docs/typedoc/
+# Ignore common coverage or test result files formats
+*.info
+*.xml
+# Generic paths rulesets to ignore coverage results
+*coverage*/
+*coverage*.*
+*codecov*/
+*codecov*.*
