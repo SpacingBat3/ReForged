@@ -5,6 +5,7 @@
   "scripts": {
     "build": "tsc -b",
     "test": "tsc -b tsconfig.test.json && NODE_NO_WARNINGS=1 node --test --experimental-strip-types",
+    "test:coverage": "c8 -r json npm test --",
     "docs": "typedoc"
   },
   "repository": {
@@ -20,6 +21,7 @@
     "@tsconfig/strictest": "^2.0.0",
     "@types/node": "^18.11.17",
     "@types/semver": "^7.3.13",
+    "c8": "^10.1.3",
     "typedoc": "^0.27.2",
     "typescript": "^5.0.2"
   },

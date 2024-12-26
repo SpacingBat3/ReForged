@@ -6,7 +6,8 @@
   "main": "dist/main.js",
   "scripts": {
     "prepack": "tsc",
-    "test": "tsc -b tsconfig.test.json && NODE_NO_WARNINGS=1 node --test --experimental-strip-types"
+    "test": "tsc -b tsconfig.test.json && NODE_NO_WARNINGS=1 node --test --experimental-strip-types",
+    "test:coverage": "c8 -r json npm test --"
   },
   "repository": {
     "type": "git",

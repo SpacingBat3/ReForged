@@ -27,20 +27,15 @@ jobs:
         run: "npm run build"
       - name: Run tests with coverage+test reporting
         run: |
-          npm test -- --experimental-test-coverage \
-            --test-reporter=lcov --test-reporter-destination=lcov.info \
+          npm run test:coverage -- --experimental-test-coverage \
             --test-reporter=spec --test-reporter-destination=stdout \
             --test-reporter=junit --test-reporter-destination=junit.xml
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          disable_search: true
-          files: lcov.info
       - name: Upload test results to CodeCov
         if: ${{ !cancelled() }}
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          disable_search: true
-          file: junit.xml
