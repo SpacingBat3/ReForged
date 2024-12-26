@@ -192,25 +192,18 @@ export function mkSquashFs(...squashfsOptions:string[]) {
           SOURCE_DATE_EPOCH: process.env["SOURCE_DATE_EPOCH"]
         }
       });
-      let lastProgress = 0;
-      let stderrCollector = "";
-      mkSquashFS.stderr?.on("data", (chunk:unknown) => {
-        switch(true) {
-          //@ts-expect-error falls through
-          case chunk instanceof ArrayBuffer:
-            chunk = Buffer.from(chunk);
-          //@ts-expect-error falls through
-          case chunk instanceof Buffer:
-            chunk = (chunk as Buffer).toString();
-          case chunk instanceof String:
-            stderrCollector+=(chunk as string);
-            break;
-          default:
-            throw new TypeError("Unresolved chunk type.")
-        }
+      const oDecoder = new TextDecoder(), eDecoder = new TextDecoder();
+      let lastProgress = 0, stderrCollector = "";
+      mkSquashFS.stderr?.on("data", (chunk:Uint8Array|string) => {
+        if(chunk instanceof String)
+          stderrCollector+=chunk;
+        else if(chunk instanceof Object.getPrototypeOf(Int8Array) || chunk instanceof ArrayBuffer || chunk instanceof DataView)
+          stderrCollector+=eDecoder.decode(chunk as AllowSharedBufferSource, {stream:true});
+        else
+          throw new TypeError(`Invalid chunk type ${chunk?.constructor.name ?? typeof chunk}.`);
       })
-      mkSquashFS.stdout?.on("data", (chunk) => {
-        const message = chunk.toString();
+      mkSquashFS.stdout?.on("data", (chunk:Uint8Array|string) => {
+        const message = typeof chunk === "string" ? chunk : oDecoder.decode(chunk);
         const progress = message.match(/\] [0-9/]+ ([0-9]+)%/)?.[1];
         if(progress !== undefined) {
           const progInt = parseInt(progress,10);
@@ -222,7 +215,7 @@ export function mkSquashFs(...squashfsOptions:string[]) {
       mkSquashFS.once("close", (...args) => event.emit(
         "close",
         ...args,
-        stderrCollector === "" ? undefined : stderrCollector
+        (stderrCollector+=eDecoder.decode()) === "" ? undefined : stderrCollector
       ));
       mkSquashFS.on("error", (error) => event.emit("error", error));
     });
