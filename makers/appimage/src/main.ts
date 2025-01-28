@@ -41,10 +41,10 @@ import type { DebugLoggerFunction } from "util";
 const enum RemoteDefaults {
   MirrorHost = 'https://github.com/AppImage/',
   MirrorPath = '/releases/download/',
-  MirrorAK = 'AppImageKit',
+  MirrorAK = 'appimage',
   MirrorT2R = 'type2-runtime',
   /** Currently supported release of AppImageKit distributables. */
-  Tag = 13,
+  Tag = continuous,
   Dir = "{{ version }}",
   FileName = "{{ filename }}-{{ arch }}",
 }
