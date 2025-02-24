@@ -128,7 +128,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
     } = (this.config.options ?? {})
     // FIXME: https://github.com/tc39/proposal-throw-expressions would be nice
     //        here when decision to add it to standard will be made.
-    const appImageArch = mapArch[targetArch]??(()=>{throw new Error(`Unsupported architecture ${targetArch}`)})();
+    const appImageArch = mapArch[targetArch]??(()=>{throw new Error(`Unsupported architecture: '${targetArch}'.`)})();
     /** A URL-like string from which assets will be downloaded. @deprecated */
     const remote = `${env("APPIMAGEKIT_MIRROR") ?? (type2runtime && !currentTag
       ? `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorT2R}${RemoteDefaults.MirrorPath}`
