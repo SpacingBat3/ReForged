@@ -1,0 +1,10 @@
+{
+  "name": "@reforged/maker-types",
+  "version": "1.0.0",
+  "description": "Shared types across ReForged makers",
+  "keywords": [],
+  "author": "SpacingBat3 <git@spacingbat3.anonaddy.com> (https://github.com/SpacingBat3)",
+  "license": "ISC",
+  "type": "module",
+  "types": "types.d.ts"
+}

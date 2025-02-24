@@ -3,7 +3,8 @@
   "hideGenerator": true,
   "entryPointStrategy": "packages",
   "entryPoints": [
-    "./makers/appimage"
+    "./makers/appimage",
+    "./shared/maker-types"
   ],
   "commentStyle": "jsdoc",
   "visibilityFilters": {},
