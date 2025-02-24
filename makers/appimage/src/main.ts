@@ -1,6 +1,5 @@
 (process as {setSourceMapsEnabled?:(arg0:boolean)=>void}).setSourceMapsEnabled?.(true);
 
-import { createHash, getHashes } from "crypto";
 import { tmpdir } from "os";
 import { resolve, extname, relative } from "path";
 import {
@@ -29,7 +28,6 @@ import {
   joinFiles,
   mkSquashFs,
   mapArch,
-  mapHash,
   getImageMetadata,
   getSquashFsVer
 } from "./utils.js"
@@ -44,7 +42,7 @@ const enum RemoteDefaults {
   MirrorAK = 'AppImageKit',
   MirrorT2R = 'type2-runtime',
   /** Currently supported release of AppImageKit distributables. */
-  Tag = 13,
+  Tag = "continuous",
   Dir = "{{ version }}",
   FileName = "{{ filename }}-{{ arch }}",
 }
@@ -62,6 +60,16 @@ const d:DebugLoggerFunction = (() => {
   return () => {};
 })()
 
+const deprecations = {
+  runtime: {
+    type: "DeprecationWarning",
+    detail: "Use 'options.runtime' instead in maker configuration."
+  },
+  shell: {
+    type: "DeprecationWarning",
+    detail: "Provide scripts on your own within your app data or switch to plugin."
+  }
+}
 /**
  * An AppImage maker for Electron Forge.
  *
@@ -109,10 +117,32 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
   }: MakerMeta, ...vendorExt: unknown[]): Promise<[AppImagePath:string]> {
     d("Initializing maker metadata.")
     const {
-      actions, categories, compressor, genericName, flagsFile, type2runtime
+      actions, categories, compressor, genericName, runtime, icon,
+      // Deprecated:
+      flagsFile, type2runtime
     } = (this.config.options ?? {});
-    const appImageArch = mapArch(targetArch);
-    function parseMirror(string:string,version:typeof currentTag,filename:string|null=null) {
+    let {
+      name, bin, productName,
+      // Deprecated:
+      AppImageKitRelease:currentTag
+    } = (this.config.options ?? {})
+    // FIXME: https://github.com/tc39/proposal-throw-expressions would be nice
+    //        here when decision to add it to standard will be made.
+    const appImageArch = mapArch[targetArch]??(()=>{throw new Error(`Unsupported architecture ${targetArch}`)})();
+    /** A URL-like string from which assets will be downloaded. @deprecated */
+    const remote = `${env("APPIMAGEKIT_MIRROR") ?? (type2runtime && !currentTag
+      ? `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorT2R}${RemoteDefaults.MirrorPath}`
+      : (
+        process.emitWarning("Tag-based runtime fetching is deprecated.", deprecations.runtime),
+        `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorAK}${RemoteDefaults.MirrorPath}`
+      ))
+    }${
+      env("APPIMAGEKIT_CUSTOM_DIR") ?? RemoteDefaults.Dir
+    }/${
+      env("APPIMAGEKIT_CUSTOM_FILENAME") ?? RemoteDefaults.FileName
+    }`;
+    /** @deprecated */
+    function parseMirror(string:string,version:NonNullable<typeof currentTag>,filename:string|null=null) {
       string = string
         .replaceAll(/{{ *version *}}/g,`${version}`)
         .replaceAll(/{{ *arch *}}/g,appImageArch)
@@ -121,36 +151,14 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         string = string.replaceAll(/{{ *filename *}}/g, filename);
       return string;
     }
-    /** A URL-like object from which assets will be downloaded. */
-    const remote = {
-      mirror: {
-        runtime: type2runtime ?
-          `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorT2R}${RemoteDefaults.MirrorPath}` :
-          process.env["REFORGED_APPIMAGEKIT_MIRROR"] ??
-            process.env["APPIMAGEKIT_MIRROR"] ??
-            `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorAK}${RemoteDefaults.MirrorPath}`,
-        AppRun: process.env["REFORGED_APPIMAGEKIT_MIRROR"] ??
-          process.env["APPIMAGEKIT_MIRROR"] ??
-          `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorAK}${RemoteDefaults.MirrorPath}`
-      },
-      dir: process.env["REFORGED_APPIMAGEKIT_CUSTOM_DIR"] ?? process.env["APPIMAGEKIT_CUSTOM_DIR"] ?? RemoteDefaults.Dir,
-      file: process.env["REFORGED_APPIMAGEKIT_CUSTOM_FILENAME"] ?? process.env["APPIMAGEKIT_CUSTOM_FILENAME"] ?? RemoteDefaults.FileName
-    };
-    /** Node.js friendly name of the application. */
-    const name = sanitizeName(this.config.options?.name ?? packageJSON.name as string);
-    /** Name of binary, used for shell script generation and `Exec` values. */
-    const bin = this.config.options?.bin ?? name;
-    const binShell = bin.replaceAll(/(?<!\\)"/g,'\\"');
-    /** Human-friendly application name. */
-    const productName = this.config.options?.productName ?? appName;
-    /** A path to application's icon. */
-    const icon = this.config?.options?.icon ?? null;
+    // Fallbacks:
+    name ??= sanitizeName(this.config.options?.name ?? packageJSON.name as string);
+    bin  ??= name;
+    productName ??= appName;
+    currentTag ??= RemoteDefaults.Tag;
     /** Resolved path to AppImage output file. */
     const outFile = resolve(makeDir, this.name, targetArch, `${productName}-${packageJSON.version}-${targetArch}.AppImage`);
-    /** A currently used AppImageKit release. */
-    const currentTag = (
-      type2runtime ? "continuous" : this.config.options?.AppImageKitRelease ?? RemoteDefaults.Tag
-    ) satisfies Exclude<Required<MakerAppImageConfig>["options"]["AppImageKitRelease"],undefined>;
+    const binShell = bin.replaceAll(/(?<!\\)"/g,'\\"');
     /**
      * Detailed information about the source files.
      *
@@ -162,29 +170,16 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
      */
     const sources = Object.freeze({
       /** Details about the AppImage runtime. */
-      runtime: Object.freeze({
-        data: fetch(parseMirror(`${remote.mirror.runtime}${remote.dir}/${remote.file}`,currentTag,"runtime"))
+      runtime: runtime && existsSync(runtime)
+        ? readFile(runtime)
+        : fetch(runtime ?? parseMirror(remote,currentTag,"runtime"))
           .then(response => {
             d("Fetched AppImage runtime from mirror.")
-            if(response.ok)
+            if(response.status === 200)
               return response.arrayBuffer()
             else
               throw new Error(`Runtime request failure (${response.status}: ${response.statusText}).`)
           }),
-        md5: mapHash.runtime[mapArch(targetArch)]
-      }),
-      /** Details about AppRun ELF executable, used to start the app. */
-      AppRun: Object.freeze({
-        data: fetch(parseMirror(`${remote.mirror.AppRun}${remote.dir}/${remote.file}`,currentTag,"AppRun"))
-          .then(response => {
-            d("Fetched AppImage AppRun from mirror.")
-            if(response.ok)
-              return response.arrayBuffer()
-            else
-              throw new Error(`AppRun request failure (${response.status}: ${response.statusText}).`)
-          }),
-        md5: mapHash.AppRun[mapArch(targetArch)]
-      }),
       /** Details about the generated `.desktop` file. */
       desktop: typeof this.config.options?.desktopFile === "string" ?
         readFile(this.config.options.desktopFile, "utf-8") :
@@ -199,8 +194,8 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
             categories.join(';')+';' :
             undefined,
           "X-AppImage-Name": name,
-          "X-AppImage-Version": packageJSON.version,
-          "X-AppImage-Arch": mapArch(targetArch)
+          "X-AppImage-Version": packageJSON.version as string,
+          "X-AppImage-Arch": appImageArch
         }, actions)),
       /** Shell script used to launch the application. */
       shell: [
@@ -211,10 +206,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         `exec "$USR/lib/${name}/${binShell}" "$@"`
       ]
     });
-    /** Whenever using the script is necessary. */
-    let useScript = false;
     if(flagsFile) {
-      useScript = true;
       sources.shell.pop();
       sources.shell.push(
         'ARGV=\'\'',
@@ -261,6 +253,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       )
     }
     const iconPath = icon ? resolve(workDir, name+extname(icon)) : undefined;
+    const binPath = resolve(directories.bin,bin);
     d("Queuing asynchronous jobs batches.")
     /** First-step jobs, which does not depend on any other job. */
     const earlyJobs = [
@@ -274,22 +267,8 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         .then(data => (d("Writing '.desktop' file to 'workDir'."),writeFile(
           resolve(workDir, productName+'.desktop'), data, {mode:0o755, encoding: "utf-8"})
         )),
-      // Verify and save `AppRun` to file (4)
-      sources.AppRun.data
-        .then(data => {
-          const buffer = Buffer.from(data);
-          if(currentTag === RemoteDefaults.Tag) {
-            if(!getHashes().includes("md5"))
-              throw new Error("MD5 is not supported by 'node:crypto'.");
-            const hash = createHash("md5")
-              .update(buffer)
-              .digest('hex');
-            if(hash !== sources.AppRun.md5)
-              throw new Error("AppRun hash mismatch.");
-          }
-          d("Writing AppRun to file.")
-          return writeFile(resolve(workDir, 'AppRun'), buffer, {mode: 0o755});
-        }),
+      // Create `AppRun` as a link to bin/ (4)
+      symlink(relative(workDir,binPath),resolve(workDir,'AppRun'),"file"),
       // Save icon to file and symlink it as `.DirIcon` (5)
       icon ? iconPath && existsSync(icon) ?
         copyFile(icon, iconPath)
@@ -299,12 +278,10 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
     const lateJobs = [
       // Write shell script to file or create a symlink
       earlyJobs[1]
-        .then(() => {
-          const binPath = resolve(directories.bin, bin);
-          if(useScript)
-            return writeFile(binPath,sources.shell.join('\n'), {mode: 0o755})
-          return symlink(relative(directories.bin, resolve(directories.data,binShell)),binPath,"file");
-        }),
+        .then(() => flagsFile
+          ? (process.emitWarning("Shell script in bin/ is deprecated",deprecations.shell),writeFile(binPath,sources.shell.join('\n'), {mode: 0o755}))
+          : symlink(relative(directories.bin, resolve(directories.data,bin)),binPath,"file")
+        ),
       // Copy Electron app to AppImage directories
       earlyJobs[0]
         .then(() => (d("Copying Electron app data."),copyPath(dir, directories.data, 0o755))),
@@ -326,30 +303,30 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
     const mkSquashFsVer = getSquashFsVer();
     switch(-1) {
       // -noappend is supported since 1.2+
-      case(mkSquashFsVer.compare("1.2.0")): //@ts-expect-error falls through
-        break; case -1:
-      mkSquashFsArgs.push("-noappend");
+      case(mkSquashFsVer.compare("1.2.0")): break;
+      //@ts-expect-error falls through
+      case -1: mkSquashFsArgs.push("-noappend");
+
       // -all-root is supported since 2.0+
-      case mkSquashFsVer.compare("2.0.0"): //@ts-expect-error falls through
-        break; case -1:
-      mkSquashFsArgs.push("-all-root");
+      case mkSquashFsVer.compare("2.0.0"): break;
+      //@ts-expect-error falls through
+      case -1: mkSquashFsArgs.push("-all-root");
       // -all-time and -mkfs-time is supported since 4.4+
-      case mkSquashFsVer.compare("4.4.0"):
-        break;
-      default: if(process.env["SOURCE_DATE_EPOCH"] === undefined)
+      case mkSquashFsVer.compare("4.4.0"): break;
+      case -(process.env["SOURCE_DATE_EPOCH"] === undefined):
       mkSquashFsArgs.push("-all-time", "0", "-mkfs-time", "0");
     }
     // Set compressor options if available
-    if(compressor)
-      mkSquashFsArgs.push("-comp", compressor);
-    if(compressor === "xz")
-      mkSquashFsArgs.push(
-        // Defaults for `xz` took from AppImageTool:
-        "-Xdict-size",
-        "100%",
-        "-b",
-        "16384"
+    switch(compressor) {
+      case undefined: break;
+      //@ts-expect-error falls through
+      default: mkSquashFsArgs.push("-comp", compressor);
+      // Defaults for `xz` took from AppImageTool:
+      case "xz": mkSquashFsArgs.push(
+        "-Xdict-size", "100%",
+        "-b", "16384"
       );
+    }
     d("Queuing 'mksquashfs' task.")
     await new Promise((resolve, reject) => {
       this.ensureFile(outFile).then(() => {
@@ -366,25 +343,26 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
           evtCh.on("progress", percent => vndCh.emit("progress", percent));
       }).catch(error => reject(error));
     });
-    d("Cleanup temporary work directory.")
-    await cleanupHook();
-    process.off("uncaughtExceptionMonitor",cleanupHook);
-    process.off("exit", cleanupSyncHook);
-    d("Merging AppImage data and runtime into single file.")
-    // Append runtime to SquashFS image and wait for that task to finish
-    await sources.runtime.data
-      //TODO: Find how properly embed MD5 or SHA256 signatures
-      /*.then(
-        async runtime => config.options?.digestMd5??true ?
-          setChecksum(runtime, await readFile(outFile)) :
-          runtime
-      )*/
-      .then(runtime => joinFiles(runtime,outFile))
-      .then(buffer => writeFile(outFile, buffer))
-      .then(() => chmod(outFile, 0o755))
+    d("Cleanup workDir & craft final AppImage.")
+    await Promise.all([
+      cleanupHook()
+        .then(() => void process
+          .off("uncaughtExceptionMonitor",cleanupHook)
+          .off("exit", cleanupSyncHook) as void),
+      writeFile(outFile,await joinFiles(await sources.runtime,outFile))
+    ]);
+    // Finishing touches to the AppImage.
+    await chmod(outFile, 0o755)
     // Finally, return paths to maker artifacts
     return [outFile];
   }
+}
+
+function env(value:string) {
+  const candidate = process.env[`REFORGED_${value}`] ?? process.env[value] ?? null;
+  if(candidate)
+    process.emitWarning("Mirror customization environment variables are deprecated.", deprecations.runtime);
+  return candidate;
 }
 
 export {
@@ -393,8 +371,7 @@ export {
 
 export type {
   MakerAppImageConfig,
-  MakerAppImageConfigOptions,
-  FreeDesktopCategories
+  MakerAppImageConfigOptions
 } from "../types/config.d.ts";
 
 export type {

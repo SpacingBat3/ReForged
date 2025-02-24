@@ -274,42 +274,14 @@ export async function joinFiles(...filesAndBuffers:readonly(string|ArrayBufferLi
       return result;
     });
 }
-
 /**
  * Maps Node.js architecture to the AppImage-friendly format.
  */
-export function mapArch(arch:ForgeArch):AppImageArch {
-  switch(arch) {
-  /*________________________________________________________________________*/
-  /*  [Forge]    :                     [AppImage]                           */
-    case "x64"   : return "x86_64";
-    case "ia32"  : return "i686";
-    case "arm64" : return "aarch64";
-    case "armv7l": return "armhf";
-    default      : throw new Error("Unsupported architecture: '"+arch+"'.");
-  /*________________________________________________________________________*/
-  /*                                                                        */
-  }
-}
-
-/**
- * An object which maps files to their MD5 hashes.
- *
- * **Note:** Checksums are valid only for the assets of AppImageKit `13`.
- */
-export const mapHash = Object.freeze({
-  runtime: Object.freeze({
-    x86_64: "37d6f0bc41f143c8c0376e874769e20a",
-    i686: "498c198765ebb914e43713af4f85c5a9",
-    aarch64: "d41d8cd98f00b204e9800998ecf8427e",
-    armhf: "85b929e78dc59098928df1655b4b7963"
-  }) satisfies Readonly<Record<AppImageArch,string>>,
-  AppRun: Object.freeze({
-    x86_64: "91b81afc501f78761adbf3bab49b0590",
-    i686: "a16e8b7d1052a388bb9fd1e42d790434",
-    aarch64: "e991d36711f99097e5c46deabb0c84a9",
-    armhf: "4e7401fd36d3d4afa4963bf0a8e08221"
-  }) satisfies Readonly<Record<AppImageArch,string>>
+export const mapArch:Readonly<Partial<Record<ForgeArch,AppImageArch>>> = Object.freeze({
+  x64:    "x86_64",
+  ia32:   "i686",
+  arm64:  "aarch64",
+  armv7l: "armhf"
 });
 
 /**
