@@ -69,8 +69,6 @@ const
       return path;
     });
 
-
-
 /** Cleanup hook after Electron mock make process. */
 async function cleanup() {
   const promises = new Array<Promise<void>>();

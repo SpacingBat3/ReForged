@@ -19,12 +19,12 @@ interface MakerAppImageConfigOptions extends MakerUnixOptions {
      */
     compressor?: "xz"|"gzip"|"lz4"|"lzo"|"zstd"|"lzma"
     /**
-     * GitHub Release of `AppImage/AppImageKit` from which this maker should
-     * get the runtime and AppRun executable.
+     * GitHub Release of repository, from which runtime will be fetched.
      *
-     * Defaults to `13`.
+     * Defaults to `continuous`.
      *
      * @since v1.1.0
+     * @deprecated Use {@linkcode runtime} instead
      */
     AppImageKitRelease?: number | `${number}` | "continuous",
     /**
@@ -34,22 +34,29 @@ interface MakerAppImageConfigOptions extends MakerUnixOptions {
      * file format described in [this Arch Wiki section][wiki].
      *
      * [wiki]: https://wiki.archlinux.org/index.php?title=Chromium&oldid=776126#Making_flags_persistent
+     *
+     * @deprecated Will be replaced by plugin
      */
     flagsFile?: boolean,
     /**
-     * Whenever to use the new experimental statically-linked runtime executable.
-     * This implies {@linkcode AppImageKitRelease} is set to `"continuous"`.
+     * Whenever to use the new statically-linked runtime executable.
+     * Depends on condition `AppImageKitRelease === "continuous"` being
+     * fulfilled.
      *
-     * **This option is highly experimental and might break after changes in
-     * `AppImage/type2-runtime` repo will be deleted or merged to
-     * `AppImage/AppImageKit`!**
-     *
-     * Default is `false`.
-     *
-     * @experimental
+     * Default is `true`.
+     * @requires
+     * @deprecated Use {@linkcode runtime} instead
      */
-    type2runtime?: boolean
+    type2runtime?: boolean,
+    /**
+     * A file location, from which runtime should be fetched. Can be remote URL
+     * that is supported by Node.js `fetch` or file path.
+     *
+     * Default is `"https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-"+arch`
+     */
+    runtime?: string|URL
 }
+
 interface MakerAppImageConfig extends MakerConfig<MakerAppImageConfigOptions> {}
 
 export default MakerAppImageConfig;
