@@ -27,6 +27,7 @@
   },
   "workspaces": [
     "makers/*/",
+    "shared/*/",
     "example"
   ],
   "private": true,
