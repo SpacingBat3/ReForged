@@ -21,7 +21,7 @@
     "packaging",
     "appimage"
   ],
-  "author": "SpacingBat3",
+  "author": "SpacingBat3 <git@spacingbat3.anonaddy.com> (https://github.com/SpacingBat3)",
   "license": "ISC",
   "dependencies": {
     "@electron-forge/maker-base": "^6.0.0 || ^7.0.0",

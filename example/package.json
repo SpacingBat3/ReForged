@@ -12,10 +12,7 @@
     "publish": "tsc && electron-forge publish",
     "lint": "echo \"No linting configured\""
   },
-  "author": {
-    "name": "SpacingBat3",
-    "email": "git@spacingbat3.anonaddy.com"
-  },
+  "author": "SpacingBat3 <git@spacingbat3.anonaddy.com> (https://github.com/SpacingBat3)",
   "license": "UNLICENSE",
   "devDependencies": {
     "@electron-forge/cli": "^7.1.0",
