@@ -1,5 +1,6 @@
 {
-  "extends": "./node_modules/@tsconfig/strictest/tsconfig.json",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@tsconfig/strictest",
   "compilerOptions": {
     "composite": true,
     "incremental": true,

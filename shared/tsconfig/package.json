@@ -1,0 +1,12 @@
+{
+  "name": "@reforged/tsconfig",
+  "version": "1.0.0",
+  "description": "Shared TypeScript compiler configuration options for ReForged",
+  "devDependencies": {
+    "@tsconfig/strictest": "^2.0.5"
+  },
+  "keywords": ["tsconfig"],
+  "author": "SpacingBat3 <git@spacingbat3.anonaddy.com> (https://github.com/SpacingBat3)",
+  "license": "ISC",
+  "private": true
+}
