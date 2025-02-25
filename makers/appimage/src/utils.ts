@@ -195,7 +195,7 @@ export function mkSquashFs(...squashfsOptions:string[]) {
       const oDecoder = new TextDecoder(), eDecoder = new TextDecoder();
       let lastProgress = 0, stderrCollector = "";
       mkSquashFS.stderr?.on("data", (chunk:Uint8Array|string) => {
-        if(chunk instanceof String)
+        if(typeof chunk === "string" || chunk instanceof String)
           stderrCollector+=chunk;
         else if(chunk instanceof Object.getPrototypeOf(Int8Array) || chunk instanceof ArrayBuffer || chunk instanceof DataView)
           stderrCollector+=eDecoder.decode(chunk as AllowSharedBufferSource, {stream:true});
