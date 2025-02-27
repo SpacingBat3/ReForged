@@ -2,6 +2,11 @@
   "name": "@reforged/tsconfig",
   "version": "1.0.0",
   "description": "Shared TypeScript compiler configuration options for ReForged",
+  "homepage": "https://spacingbat3.github.io/ReForged/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SpacingBat3/ReForged.git"
+  },
   "devDependencies": {
     "@tsconfig/strictest": "^2.0.5"
   },

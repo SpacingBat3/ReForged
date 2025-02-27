@@ -7,6 +7,11 @@
   "license": "ISC",
   "type": "module",
   "types": "types.d.ts",
+  "homepage": "https://spacingbat3.github.io/ReForged/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SpacingBat3/ReForged.git"
+  },
   "publishConfig": {
     "access": "public"
   }

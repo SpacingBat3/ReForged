@@ -16,7 +16,7 @@
   "bugs": {
     "url": "https://github.com/SpacingBat3/ReForged/issues"
   },
-  "homepage": "https://github.com/SpacingBat3/ReForged#readme",
+  "homepage": "https://spacingbat3.github.io/ReForged/",
   "devDependencies": {
     "@reforged/tsconfig": "file:shared/tsconfig",
     "@types/node": "^18.11.17",
