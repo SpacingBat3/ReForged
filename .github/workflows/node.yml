@@ -55,6 +55,11 @@ jobs:
       id-token: write
     strategy:
       matrix:
+        # FIXME: Consider some smarter scripting capabilities than if ... else
+        #        tag to package mapping. Substring of tag to next slash could
+        #        help a lot.
+        #        At least I can do hacky expression splitting to have it stored
+        #        as a rather "pretty, lengthy" value.
         pkg: >-
           ${{ (startsWith(github.ref_type,'appimage/v') && fromJson('["maker-appimage"]') ||
             startsWith(github.ref_type,'maker-types/v') && fromJson('["maker-types"]') ||
@@ -73,7 +78,7 @@ jobs:
       # Create package & publish it as artifact for inspection
       - name: Create package tarball
         id:   pack
-        run:  echo "meta=$(npm -w @reforged/${{ matrix.pkg }} pack --json)" >> "$GITHUB_OUTPUT"
+        run:  echo "meta=$(npm -w @reforged/${{ matrix.pkg }} pack --json | tr -d ' \n')" >> "$GITHUB_OUTPUT"
       - name: Upload package as artifact
         uses: actions/upload-artifact@v4
         env:
