@@ -126,17 +126,21 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       // Deprecated:
       AppImageKitRelease:currentTag
     } = (this.config.options ?? {})
+    // Deprecations (to be removed in next major)
+    if(currentTag !== undefined)
+      process.emitWarning("Tag-based runtime fetching is deprecated.", deprecations.runtime)
+    if(type2runtime !== undefined)
+      process.emitWarning("Boolean-oriented runtime setting is deprecated.", deprecations.runtime)
+    if(flagsFile !== undefined)
+      process.emitWarning("Shell script configurations are deprecated", deprecations.shell)
     // FIXME: https://github.com/tc39/proposal-throw-expressions would be nice
     //        here when decision to add it to standard will be made.
     const appImageArch = mapArch[targetArch]??(()=>{throw new Error(`Unsupported architecture: '${targetArch}'.`)})();
     /** A URL-like string from which assets will be downloaded. @deprecated */
     const remote = `${env("APPIMAGEKIT_MIRROR") ?? ((type2runtime??true) && !currentTag
       ? `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorT2R}${RemoteDefaults.MirrorPath}`
-      : (
-        process.emitWarning("Tag-based runtime fetching is deprecated.", deprecations.runtime),
-        `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorAK}${RemoteDefaults.MirrorPath}`
-      ))
-    }${
+      : `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorAK}${RemoteDefaults.MirrorPath}`
+    )}${
       env("APPIMAGEKIT_CUSTOM_DIR") ?? RemoteDefaults.Dir
     }/${
       env("APPIMAGEKIT_CUSTOM_FILENAME") ?? RemoteDefaults.FileName
@@ -279,7 +283,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       // Write shell script to file or create a symlink
       earlyJobs[1]
         .then(() => flagsFile
-          ? (process.emitWarning("Shell script in bin/ is deprecated",deprecations.shell),writeFile(binPath,sources.shell.join('\n'), {mode: 0o755}))
+          ? writeFile(binPath,sources.shell.join('\n'), {mode: 0o755})
           : symlink(relative(directories.bin, resolve(directories.data,bin)),binPath,"file")
         ),
       // Copy Electron app to AppImage directories
