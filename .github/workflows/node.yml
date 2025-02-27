@@ -29,17 +29,19 @@ jobs:
         run:  npm run build
       # Test
       - name: Run tests with coverage+test reporting
+        if: matrix.node-version == 'latest' || matrix.node-version == '22.x'
         run: |
           npm run test:coverage -- --experimental-test-coverage \
             --test-reporter=spec --test-reporter-destination=stdout \
             --test-reporter=junit --test-reporter-destination=junit.xml
       - name: Upload coverage reports to Codecov
+        if: success()
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           name: "${{ github.ref_type }}#${{ matrix.node-version }}"
       - name: Upload test results to CodeCov
-        if: ${{ !cancelled() }}
+        if: !cancelled()
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
