@@ -9,11 +9,11 @@ on:
 
 jobs:
   test:
-    name: Build and run tests
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x, latest]
+    name:    Build and run tests (${{ github.ref }}#${{ matrix.node-version }})
+    runs-on: ubuntu-latest
     steps:
       # Initialization
       - name: Checkout
@@ -48,7 +48,7 @@ jobs:
           name: "${{ github.ref_name }}#${{ matrix.node-version }}"
   publish:
     needs: test
-    name:  Distribute ${github.ref_type}
+    name:  Distribute ${{ github.ref_type }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
