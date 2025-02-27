@@ -130,7 +130,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
     //        here when decision to add it to standard will be made.
     const appImageArch = mapArch[targetArch]??(()=>{throw new Error(`Unsupported architecture: '${targetArch}'.`)})();
     /** A URL-like string from which assets will be downloaded. @deprecated */
-    const remote = `${env("APPIMAGEKIT_MIRROR") ?? (type2runtime && !currentTag
+    const remote = `${env("APPIMAGEKIT_MIRROR") ?? ((type2runtime??true) && !currentTag
       ? `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorT2R}${RemoteDefaults.MirrorPath}`
       : (
         process.emitWarning("Tag-based runtime fetching is deprecated.", deprecations.runtime),
