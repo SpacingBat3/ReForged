@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x, latest]
-    name:    Build and run tests (${{ github.ref }}#${{ matrix.node-version }})
+    name:    Build and run tests (${{ github.ref_type }}#${{ matrix.node-version }})
     runs-on: ubuntu-latest
     steps:
       # Initialization
