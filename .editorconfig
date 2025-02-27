@@ -15,7 +15,7 @@ insert_final_newline = false
 trim_trailing_whitespace = true
 
 # Default indentation for TypeScript and JSON files
-[*.{ts,json}]
+[*.{ts,json,yml}]
 indent_style = space
 indent_size = 2
 
