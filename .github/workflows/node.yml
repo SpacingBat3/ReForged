@@ -53,8 +53,13 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    env:
-      PUSH_PKG: ${{ startsWith(github.ref,'refs/tags/appimage/v') && 'maker-appimage' || startsWith(github.ref,'refs/tags/maker-types/v') && 'maker-types' || '' }}
+    strategy:
+      matrix:
+        pkg: >-
+          ${{ (startsWith(github.ref_type,'appimage/v') && fromJson('["maker-appimage"]') ||
+            startsWith(github.ref_type,'maker-types/v') && fromJson('["maker-types"]') ||
+            fromJson('["maker-appimage","maker-types"]')
+          )}}
     steps:
       # Initialization
       - name: Checkout
@@ -68,17 +73,17 @@ jobs:
       # Create package & publish it as artifact for inspection
       - name: Create package tarball
         id:   pack
-        run:  echo "meta=$(npm -w @reforged/$PUSH_PKG pack)" >> "$GITHUB_OUTPUT"
+        run:  echo "meta=$(npm -w @reforged/${{ matrix.pkg }} pack)" >> "$GITHUB_OUTPUT"
       - name: Upload package as artifact
         uses: actions/upload-artifact@v4
         env:
           test: "foo"
         with:
-          name: reforged-$PUSH_PKG
+          name: reforged-${{ matrix.pkg }}
           path: ${{ fromJson(steps.pack.outputs.meta)[0].filename }}
       # Publish to NPM (for tags)
       - name: Publish to NPM
         if:   ${{ github.ref_type == 'tag' }}
-        run:  npm -w @reforged/$PUSH_PKG publish --provenance
+        run:  npm -w @reforged/${{ matrix.pkg }} publish --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
