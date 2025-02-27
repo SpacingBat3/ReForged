@@ -104,6 +104,7 @@ interface mkSqFsEvt extends EventEmitter {
   emit(..._:mkSqFSEvtEmit<"error">): boolean;
 }
 
+// FIXME: Library considerations? Should we make for it separate module?
 export function generateDesktop(desktopEntry: Partial<Record<string,string|null>>, actions?: Record<string,Partial<Record<string,string|null>>&{ Name: string }>) {
   function toEscapeSeq<T>(string:T): T extends string ? string : T {
     if(typeof string === "string")
@@ -134,6 +135,8 @@ export function generateDesktop(desktopEntry: Partial<Record<string,string|null>
  * Asynchronously copy path from `source` to `destination`, with similar logic
  * to Unix `cp -R` command.
  */
+// FIXME: Switch to actual `cp()` API in Node.js when dropping support for older
+//        Node versions. Then remove this entirely.
 export async function copyPath(source:string, destination:string, dirmode: Mode|ModeFunction = 0o644) {
   const fs = Promise.all([import("fs"), import("fs/promises")])
     .then(([sync,async]) => ({...sync, ...async}));
