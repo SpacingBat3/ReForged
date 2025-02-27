@@ -47,7 +47,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           name: "${{ github.ref_name }}#${{ matrix.node-version }}"
   publish:
-    name:    Distribute ${{ github.ref_type }}
+    name:    Distribute ${{ github.ref_name }}
     runs-on: ubuntu-latest
     needs:   test
     permissions:
@@ -73,7 +73,7 @@ jobs:
       # Create package & publish it as artifact for inspection
       - name: Create package tarball
         id:   pack
-        run:  echo "meta=$(npm -w @reforged/${{ matrix.pkg }} pack)" >> "$GITHUB_OUTPUT"
+        run:  echo "meta=$(npm -w @reforged/${{ matrix.pkg }} pack --json)" >> "$GITHUB_OUTPUT"
       - name: Upload package as artifact
         uses: actions/upload-artifact@v4
         env:
