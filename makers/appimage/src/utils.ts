@@ -1,7 +1,7 @@
 import EventEmitter from "events";
 import { Mode, existsSync } from "fs";
 import { readFile } from "fs/promises";
-import { execFileSync } from "child_process";
+import { execFileSync, execFile } from "child_process";
 
 import { coerce } from "semver";
 
@@ -181,44 +181,34 @@ export async function copyPath(source:string, destination:string, dirmode: Mode|
  *
  * @returns An event used to watch for `mksquashfs` changes, including the job progress (in percent – as float number).
  */
-export function mkSquashFs(...squashfsOptions:string[]) {
-  const event:mkSqFsEvt = new EventEmitter();
-  import("child_process").then(child => child.execFile)
-    .then(execFile => {
-      const mkSquashFS = execFile("mksquashfs", squashfsOptions, {
-        windowsHide: true,
-        env: {
-          PATH: process.env["PATH"],
-          SOURCE_DATE_EPOCH: process.env["SOURCE_DATE_EPOCH"]
-        }
-      });
-      const oDecoder = new TextDecoder(), eDecoder = new TextDecoder();
-      let lastProgress = 0, stderrCollector = "";
-      mkSquashFS.stderr?.on("data", (chunk:Uint8Array|string) => {
-        if(chunk instanceof String)
-          stderrCollector+=chunk;
-        else if(chunk instanceof Object.getPrototypeOf(Int8Array) || chunk instanceof ArrayBuffer || chunk instanceof DataView)
-          stderrCollector+=eDecoder.decode(chunk as AllowSharedBufferSource, {stream:true});
-        else
-          throw new TypeError(`Invalid chunk type ${chunk?.constructor.name ?? typeof chunk}.`);
-      })
-      mkSquashFS.stdout?.on("data", (chunk:Uint8Array|string) => {
-        const message = typeof chunk === "string" ? chunk : oDecoder.decode(chunk);
-        const progress = message.match(/\] [0-9/]+ ([0-9]+)%/)?.[1];
-        if(progress !== undefined) {
-          const progInt = parseInt(progress,10);
-          if(progInt >= 0 && progInt <= 100 &&
-            progInt !== lastProgress && event.emit("progress", progInt/100))
-              lastProgress = progInt;
-        }
-      });
-      mkSquashFS.once("close", (...args) => event.emit(
-        "close",
-        ...args,
-        (stderrCollector+=eDecoder.decode()) === "" ? undefined : stderrCollector
-      ));
-      mkSquashFS.on("error", (error) => event.emit("error", error));
-    });
+export function mkSquashFs(...argv:string[]) {
+  let lastProgress = 0, stderrCollector = "";
+  const event:mkSqFsEvt = new EventEmitter(), {PATH,SOURCE_DATE_EPOCH} = process.env, {
+    stderr,stdout
+  } = execFile("mksquashfs", argv, {
+    encoding: "utf-8",
+    windowsHide: true,
+    env: { PATH, SOURCE_DATE_EPOCH }
+  }).once("close", (...args) => event.emit(
+    "close",
+    ...args,
+    stderrCollector ? undefined : stderrCollector
+  )).on("error", (error) => event.emit("error", error));
+  stderr?.on("data", (chunk:string|object) => {switch(chunk.constructor){
+    case String:
+      stderrCollector+=chunk; break;
+    default:
+      throw new TypeError(`Unresolved chunk of type '${chunk?.constructor.name ?? typeof chunk}'.`);
+  }})
+  stdout?.on("data", (chunk:string|object) => {
+    if(chunk.constructor !== String) return;
+    const progress = chunk.match(/\] [0-9/]+ ([0-9]+)%/)?.[1];
+    if(progress === undefined) return;
+    const progInt = parseInt(progress,10);
+    if(progInt >= 0 && progInt <= 100 && progInt !== lastProgress
+        && event.emit("progress", progInt/100))
+      lastProgress = progInt;
+  });
   return event;
 }
 
