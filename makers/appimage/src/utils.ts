@@ -1,5 +1,5 @@
 import EventEmitter from "events";
-import { Mode, existsSync } from "fs";
+import { existsSync } from "fs";
 import { readFile } from "fs/promises";
 import { execFileSync, execFile } from "child_process";
 
@@ -10,7 +10,6 @@ import type { SemVer } from "semver"
 
 type AppImageArch = "x86_64"|"aarch64"|"armhf"|"i686";
 export type ForgeArch = "x64" | "arm64" | "armv7l" | "ia32" | "mips64el" | "universal";
-type ModeFunction = (source:string,destination:string) => Mode|Promise<Mode>;
 
 export interface MakerMeta extends MakerOptions {
   targetArch: ForgeArch;
@@ -129,54 +128,6 @@ export function generateDesktop(desktopEntry: Partial<Record<string,string|null>
   }
   if(actionsKey) template.desktop.push("Actions="+actions);
   return template.desktop.join('\n')+'\n'+template.actions.join('\n');
-}
-
-/**
- * Asynchronously copy path from `source` to `destination`, with similar logic
- * to Unix `cp -R` command.
- */
-// FIXME: Switch to actual `cp()` API in Node.js when dropping support for older
-//        Node versions. Then remove this entirely.
-export async function copyPath(source:string, destination:string, dirmode: Mode|ModeFunction = 0o644) {
-  const fs = Promise.all([import("fs"), import("fs/promises")])
-    .then(([sync,async]) => ({...sync, ...async}));
-  const path = import("path");
-  async function copyDirRecursively(source:string, destination:string) {
-    const jobs: Array<Promise<void>> = [];
-    const items = await (await fs).readdir(source);
-    const mode = typeof dirmode === "function" ? dirmode(source,destination) : dirmode;
-    await (await fs).mkdir(destination, await mode);
-    for(const item of items) {
-      const itemPath = {
-        src: (await path).resolve(source, item),
-        dest: (await path).resolve(destination, item)
-      }
-      jobs.push((await fs).lstat(itemPath.src).then(async(stats) => {
-        if(stats.isDirectory())
-          await copyDirRecursively(itemPath.src, itemPath.dest);
-        else if(stats.isFile())
-          await (await fs).copyFile(itemPath.src, itemPath.dest);
-        else if((await stats).isSymbolicLink()) {
-          const target = (await path)
-            .resolve(itemPath.src, await (await fs).readlink(itemPath.src));
-          if((await fs).existsSync(target))
-            return (await fs).symlink(
-              (await path).relative(itemPath.dest, target),
-              await itemPath.dest
-            )
-        }
-      }));
-    }
-    return void await Promise.all(jobs);
-  }
-  const stats = (await fs).lstat(source);
-  const resolvedDestination = destination.endsWith("/") || (await fs).existsSync(destination) ?
-    import("path").then(path => path.resolve(destination, path.basename(source))) :
-    destination
-  if((await stats).isDirectory())
-    return copyDirRecursively(source, await resolvedDestination);
-  else
-    return (await fs).copyFile(source, await resolvedDestination);
 }
 
 /**

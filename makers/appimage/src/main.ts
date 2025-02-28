@@ -14,7 +14,8 @@ import {
   readFile,
   chmod,
   symlink,
-  rm
+  rm,
+  cp
 } from "fs/promises";
 import { EventEmitter } from "events";
 
@@ -23,7 +24,6 @@ import { MakerBase } from "@electron-forge/maker-base";
 import sanitizeName from "@spacingbat3/lss";
 
 import {
-  copyPath,
   generateDesktop,
   joinFiles,
   mkSquashFs,
@@ -37,14 +37,10 @@ import type { MakerMeta } from "./utils.js";
 import type { DebugLoggerFunction } from "util";
 
 const enum RemoteDefaults {
-  MirrorHost = 'https://github.com/AppImage/',
-  MirrorPath = '/releases/download/',
-  MirrorAK = 'AppImageKit',
-  MirrorT2R = 'type2-runtime',
-  /** Currently supported release of AppImageKit distributables. */
+  /** Current URL to where runtimes are served. */
+  Mirror = 'https://github.com/AppImage/type2-runtime/releases/download/',
+  /** Currently supported release of runtime. */
   Tag = "continuous",
-  Dir = "{{ version }}",
-  FileName = "{{ filename }}-{{ arch }}",
 }
 
 const d:DebugLoggerFunction = (() => {
@@ -60,16 +56,6 @@ const d:DebugLoggerFunction = (() => {
   return () => {};
 })()
 
-const deprecations = {
-  runtime: {
-    type: "DeprecationWarning",
-    detail: "Use 'options.runtime' instead in maker configuration."
-  },
-  shell: {
-    type: "DeprecationWarning",
-    detail: "Provide scripts on your own within your app data or switch to plugin."
-  }
-}
 /**
  * An AppImage maker for Electron Forge.
  *
@@ -117,49 +103,19 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
   }: MakerMeta, ...vendorExt: unknown[]): Promise<[AppImagePath:string]> {
     d("Initializing maker metadata.")
     const {
-      actions, categories, compressor, genericName, runtime, icon,
-      // Deprecated:
-      flagsFile, type2runtime
+      actions, categories, compressor, genericName, icon
     } = (this.config.options ?? {});
     let {
-      name, bin, productName,
-      // Deprecated:
-      AppImageKitRelease:currentTag
+      name, bin, productName, runtime
     } = (this.config.options ?? {})
-    // Deprecations (to be removed in next major)
-    if(currentTag !== undefined)
-      process.emitWarning("Tag-based runtime fetching is deprecated.", deprecations.runtime)
-    if(type2runtime !== undefined)
-      process.emitWarning("Boolean-oriented runtime setting is deprecated.", deprecations.runtime)
-    if(flagsFile !== undefined)
-      process.emitWarning("Shell script configurations are deprecated", deprecations.shell)
     // FIXME: https://github.com/tc39/proposal-throw-expressions would be nice
     //        here when decision to add it to standard will be made.
     const appImageArch = mapArch[targetArch]??(()=>{throw new Error(`Unsupported architecture: '${targetArch}'.`)})();
-    /** A URL-like string from which assets will be downloaded. @deprecated */
-    const remote = `${env("APPIMAGEKIT_MIRROR") ?? ((type2runtime??true) && !currentTag
-      ? `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorT2R}${RemoteDefaults.MirrorPath}`
-      : `${RemoteDefaults.MirrorHost}${RemoteDefaults.MirrorAK}${RemoteDefaults.MirrorPath}`
-    )}${
-      env("APPIMAGEKIT_CUSTOM_DIR") ?? RemoteDefaults.Dir
-    }/${
-      env("APPIMAGEKIT_CUSTOM_FILENAME") ?? RemoteDefaults.FileName
-    }`;
-    /** @deprecated */
-    function parseMirror(string:string,version:NonNullable<typeof currentTag>,filename:string|null=null) {
-      string = string
-        .replaceAll(/{{ *version *}}/g,`${version}`)
-        .replaceAll(/{{ *arch *}}/g,appImageArch)
-        .replaceAll(/{{ *node.arch *}}/g,targetArch);
-      if(filename !== null)
-        string = string.replaceAll(/{{ *filename *}}/g, filename);
-      return string;
-    }
     // Fallbacks:
     name ??= sanitizeName(this.config.options?.name ?? packageJSON.name as string);
     bin  ??= name;
     productName ??= appName;
-    currentTag ??= RemoteDefaults.Tag;
+    runtime ??= `${RemoteDefaults.Mirror}${RemoteDefaults.Tag}/runtime-${appImageArch}`;
     /** Resolved path to AppImage output file. */
     const outFile = resolve(makeDir, this.name, targetArch, `${productName}-${packageJSON.version}-${targetArch}.AppImage`);
     const binShell = bin.replaceAll(/(?<!\\)"/g,'\\"');
@@ -174,9 +130,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
      */
     const sources = Object.freeze({
       /** Details about the AppImage runtime. */
-      runtime: runtime && existsSync(runtime)
-        ? readFile(runtime)
-        : fetch(runtime ?? parseMirror(remote,currentTag,"runtime"))
+      runtime: existsSync(runtime)?readFile(runtime):fetch(runtime)
           .then(response => {
             d("Fetched AppImage runtime from mirror.")
             if(response.status === 200)
@@ -200,28 +154,8 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
           "X-AppImage-Name": name,
           "X-AppImage-Version": packageJSON.version as string,
           "X-AppImage-Arch": appImageArch
-        }, actions)),
-      /** Shell script used to launch the application. */
-      shell: [
-        '#!/bin/sh -e',
-        // Normalized string to 'usr/' in the AppImage.
-        'USR="$(echo "$0" | sed \'s/\\/\\/*/\\//g;s/\\/$//;s/\\/[^/]*\\/[^/]*$//\')"',
-        // Executes the binary and passes arguments to it.
-        `exec "$USR/lib/${name}/${binShell}" "$@"`
-      ]
+        }, actions))
     });
-    if(flagsFile) {
-      sources.shell.pop();
-      sources.shell.push(
-        'ARGV=\'\'',
-        'for arg in "$@"; do',
-        '\tARGV="$ARGV${ARGV:+ }$(echo "$arg" | sed \'s~\\\\~\\\\\\\\~g;s~"~"\\\\""~g;s~^\\(.*\\)$~"\\1"~g\')"',
-        'done',
-        `CFG="\${XDG_CONFIG_HOME:-"\${HOME:-/home/"$USER"}/.config"}/${name}-flags.conf"`,
-        'if [ -f "$CFG" ]; then ARGV="$(cat "$CFG" | sed \'s~^\\s*#.*$~~g\') $ARGV"; fi',
-        `echo "$ARGV" | exec xargs "$USR/lib/${name}/${binShell}"`
-      )
-    }
     // Verify if there's a `bin` file in packaged application.
     if(!existsSync(resolve(dir, bin)))
       throw new Error([
@@ -276,19 +210,23 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       // Save icon to file and symlink it as `.DirIcon` (5)
       icon ? iconPath && existsSync(icon) ?
         copyFile(icon, iconPath)
-          .then(() => symlink(relative(workDir, iconPath), resolve(workDir, ".DirIcon"), 'file'))
+          .then(() => symlink(
+            relative(workDir, iconPath), resolve(workDir, ".DirIcon"), 'file')
+          )
         : Promise.reject(Error("Invalid icon / icon path.")) : Promise.resolve(),
     ] as const;
     const lateJobs = [
       // Write shell script to file or create a symlink
       earlyJobs[1]
-        .then(() => flagsFile
-          ? writeFile(binPath,sources.shell.join('\n'), {mode: 0o755})
-          : symlink(relative(directories.bin, resolve(directories.data,bin)),binPath,"file")
+        .then(() => symlink(
+          relative(directories.bin, resolve(directories.data,bin)),binPath,"file")
         ),
       // Copy Electron app to AppImage directories
       earlyJobs[0]
-        .then(() => (d("Copying Electron app data."),copyPath(dir, directories.data, 0o755))),
+        .then(() => (
+          d("Copying Electron app data."),
+          cp(dir, directories.data, {errorOnExist:true,recursive:true,verbatimSymlinks:true}))
+        ),
       // Copy icon to `usr` directory whenever possible
       Promise.all([earlyJobs[2],earlyJobs[5]])
         .then(([path]) => icon && path ?
@@ -353,20 +291,11 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         .then(() => void process
           .off("uncaughtExceptionMonitor",cleanupHook)
           .off("exit", cleanupSyncHook) as void),
-      writeFile(outFile,await joinFiles(await sources.runtime,outFile))
+      writeFile(outFile,await joinFiles(await sources.runtime,outFile),{mode:0o755})
     ]);
-    // Finishing touches to the AppImage.
-    await chmod(outFile, 0o755)
     // Finally, return paths to maker artifacts
     return [outFile];
   }
-}
-
-function env(value:string) {
-  const candidate = process.env[`REFORGED_${value}`] ?? process.env[value] ?? null;
-  if(candidate)
-    process.emitWarning("Mirror customization environment variables are deprecated.", deprecations.runtime);
-  return candidate;
 }
 
 export {
