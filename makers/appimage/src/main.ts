@@ -44,13 +44,17 @@ const enum RemoteDefaults {
 }
 
 const d:DebugLoggerFunction = (() => {
+  const timer = function*(){for(let timeNext,time = process.uptime();;time=timeNext)
+    yield (timeNext=process.uptime())-time
+  }()
   if(debug("reforged:maker-appimage").enabled || /(?:^|,)(?:\*|reforged:(?:\*|maker-appimage))(?:$|,)/
       .test(process.env["DEBUG"]??""))
     // Function that logs similarly to debugLog.
     return (...args:unknown[]) => console.error(
-      "@reforged/maker-appimage %o: %s",
+      "@reforged/maker-appimage %o: %s (+%f ms)",
       process.pid,
-      format(...args)
+      format(...args),
+      (timer.next().value*1000).toFixed(2)
     );
   // NO-OP function
   return () => {};
