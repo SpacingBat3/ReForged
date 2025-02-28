@@ -19,7 +19,7 @@
   "homepage": "https://spacingbat3.github.io/ReForged/",
   "devDependencies": {
     "@reforged/tsconfig": "file:shared/tsconfig",
-    "@types/node": "^18.11.17",
+    "@types/node": "^22.3.0",
     "@types/semver": "^7.3.13",
     "c8": "^10.1.3",
     "typedoc": "^0.27.2",
@@ -32,7 +32,7 @@
   ],
   "private": true,
   "engines": {
-    "node": ">=19.0.0 || ^18.11.0",
+    "node": ">=22.3.0",
     "npm": ">=7.0.0"
   },
   "license": "(ISC AND UNLICENSE)"
