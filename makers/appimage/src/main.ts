@@ -296,8 +296,9 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         .then(() => void process
           .off("uncaughtExceptionMonitor",cleanupHook)
           .off("exit", cleanupSyncHook) as void),
-      writeFile(outFile,await joinFiles(await sources.runtime,outFile),{mode:0o755})
+      writeFile(outFile,await joinFiles(await sources.runtime,outFile))
     ]);
+    chmod(outFile,0o755);
     // Finally, return paths to maker artifacts
     return [outFile];
   }
