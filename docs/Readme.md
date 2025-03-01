@@ -37,9 +37,6 @@ project are:
   it should directly generate a tarball with necessary metadata while supporting
   most features like package signing.
 
-
-- [ ] `@reforged/maker-`
-
 ## License
 
 For information on which software licenses may the ReForged project be
@@ -47,6 +44,6 @@ distributed, see [`COPYING`](../COPYING) file.
 
 [^1]: Partially implemented; no official Forge API for representation yet.
 
-[AppImage]:
-[forge]: https://github.com/electron/forge
-[maker1]: https://www.npmjs.com/package/@reforged/maker-appimage
+[AppImage]: https://appimage.org
+[forge]:    https://github.com/electron/forge
+[maker1]:   https://www.npmjs.com/package/@reforged/maker-appimage
