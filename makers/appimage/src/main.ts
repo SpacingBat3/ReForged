@@ -174,15 +174,15 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
     const workDir = await mkdtemp(resolve(tmpdir(), `.${productName}-${packageJSON.version}-${targetArch}-`));
     d("Setup cleanup hooks for error scenarios.")
     const [cleanupHook, cleanupSyncHook] = (() => {
-      let cleanup = async () => {
-        cleanup = async () => {};
-        await rm(workDir, {recursive: true});
+      let cleanup = <T extends typeof rm|typeof rmSync>(rmMethod:T):ReturnType<T>|Promise<void> => {
+        cleanup = async () => void 0;
+        return rmMethod(workDir, {recursive: true}) as ReturnType<T>;
       }
       return [
-        () => cleanup(),
-        () => void (existsSync(workDir) && rmSync(workDir, {recursive: true})) as void
+        () => cleanup(rm),
+        () => cleanup(rmSync)
       ] as const;
-    })()
+    })();
     process.once("uncaughtExceptionMonitor", cleanupHook);
     process.once("exit", cleanupSyncHook);
     process.once("SIGINT", () => {throw new Error("User interrupted the process.")});
