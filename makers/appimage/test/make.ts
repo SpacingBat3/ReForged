@@ -15,6 +15,7 @@
 
 import {
   access,
+  chmod,
   constants,
   mkdtemp,
   open,
@@ -142,10 +143,16 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, () => {
 
   it("outputs AppImage that is runnable and working fine", async ctx => {
     const exec = promisify(execFile);
+    const AppImage = await AppImageDir
     // Skip this test for non-exec tmpdir.
-    if(await access(await AppImageDir,constants.X_OK).then(_=>false,_=>true))
-      return ctx.skip("Non-executable tmpdir.");
-    const cp = exec(await AppImageDir)
+    if(await access(AppImage,constants.X_OK).then(_=>false,_=>true)) {
+      await chmod(AppImage,0o755);
+      return access(AppImage,constants.X_OK).then(
+        ()=>Promise.reject("Maker failed to set exec permissions"),
+        ()=>ctx.skip("Non-executable tmpdir.")
+      );
+    }
+    const cp = exec(AppImage)
     await assert.doesNotReject(cp);
     assert.strictEqual((await cp).stdout,"Hello world!\n")
   })
