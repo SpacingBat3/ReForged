@@ -207,9 +207,9 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         .then(path => path ? mkdir(path, {recursive: true, mode: 0o755}).then(() => path) : undefined),
       // Save `.desktop` to file (3)
       sources.desktop
-        .then(data => (d("Writing '.desktop' file to 'workDir'."),writeFile(
+        .then(data => writeFile(
           resolve(workDir, productName+'.desktop'), data, {mode:0o755, encoding: "utf-8"})
-        )),
+        ).then(() => d("Wrote '.desktop' file to 'workDir'.")),
       // Create `AppRun` as a link to bin/ (4)
       symlink(relative(workDir,binPath),resolve(workDir,'AppRun'),"file"),
       // Save icon to file and symlink it as `.DirIcon` (5)
@@ -228,10 +228,8 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         ),
       // Copy Electron app to AppImage directories
       earlyJobs[0]
-        .then(() => (
-          d("Copying Electron app data."),
-          cp(dir, directories.data, {errorOnExist:true,recursive:true,verbatimSymlinks:true}))
-        ),
+        .then(() => cp(dir, directories.data, {errorOnExist:true,recursive:true,verbatimSymlinks:true}))
+        .then(() => d("Copied Electron app data.")),
       // Copy icon to `usr` directory whenever possible
       Promise.all([earlyJobs[2],earlyJobs[5]])
         .then(([path]) => icon && path ?
@@ -280,7 +278,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         const evtCh = mkSquashFs(...mkSquashFsArgs)
           .once("close", (code,_signal,msg) => code !== 0 ?
             reject(new Error(`mksquashfs returned ${msg ? `'${msg}' in stderr` : "non-zero code"} (${code}).`)):
-            resolve(undefined)
+            resolve(d("Crafted SquashFS image file."))
           )
           .once("error", (error) => reject(error));
         for(let vndHead; vndHead !== undefined && vndHead !== "RF1"; vndHead=vendorExt.pop());
@@ -299,6 +297,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       writeFile(outFile,await joinFiles(await sources.runtime,outFile))
     ]);
     chmod(outFile,0o755);
+    d("Done everything, returning results.");
     // Finally, return paths to maker artifacts
     return [outFile];
   }
