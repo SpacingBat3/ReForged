@@ -18,30 +18,35 @@ Currently, this project is still very immature and some details are undecided
 yet about this project. The currently planned and implemented parts of this
 project are:
 
-- [X] [`@reforged/maker-appimage`][maker1] – a simple yet performant AppImage
-  maker, managing tasks asynchronously. Unlike to official Forge makers, this
-  ones directly implements Electron Forge packaging, rather than wrapping
-  another Node.js package.
+- [X] [`@reforged/maker-appimage`][maker1] – a simple, asynchronous [AppImage]
+  maker. Basically reimplementation of `appimagetool` in TypeScript, but using
+  system-wide `mksquashfs` and written natively for Forge API. Has potential for
+  packaging AppImage-alternative formats as well (right now, custom runtimes
+  are supported only).
 
-  - [ ] Emit / show current task and its progress.
+  - [X] Emit / show current task and its progress [^1].
   - [ ] Support passing and generating update information to AppImages (`zsync`).
+  - [ ] Support checksum embedding into AppImage runtime.
   - [ ] Support AppImage signing (`gpg`).
 
-- [ ] `@reforged/maker-alpm` – maker for Arch Linux `pacman` packages. It should
-  avoid the use of `makepkg`, but generate the packaged version directly. Like
-  `@reforged/maker-appimage`, it should be designed to executes multiple tasks
-  in asynchronous manner. Currently **WIP**.
+- [ ] `@reforged/plugin-shell` (WIP name) - adds shell script to the app
+  directory to be launched instead of binary, for additional features not yet
+  possible to be achieved within Electron app directly.
 
-- [ ] `@reforged/maker-flatpak` – an improved version of Flatpak maker, with
-  similar concepts to `maker-appimage`: be asynchronous and directly implement
-  maker rather than using other Node modules. It also aims to fix some bugs with
-  the current implementation, optimally supporting
-  `@electron-forge/publisher-github`.
+- [ ] `@reforged/maker-alpm` – maker for Arch Linux `pacman` packages. Ideally,
+  it should directly generate a tarball with necessary metadata while supporting
+  most features like package signing.
+
+
+- [ ] `@reforged/maker-`
 
 ## License
 
 For information on which software licenses may the ReForged project be
 distributed, see [`COPYING`](../COPYING) file.
 
+[^1]: Partially implemented; no official Forge API for representation yet.
+
+[AppImage]:
 [forge]: https://github.com/electron/forge
 [maker1]: https://www.npmjs.com/package/@reforged/maker-appimage

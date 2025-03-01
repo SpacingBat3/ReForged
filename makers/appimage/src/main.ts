@@ -64,33 +64,19 @@ const d:DebugLoggerFunction = (() => {
 /**
  * An AppImage maker for Electron Forge.
  *
- * See `Readme.md` file distributed in subproject's root dir for more
- * information and documentation of supported env variables. See
- * JSDoc/TSDoc/TypeDoc documentation (this ones!) for supported
- * configuration options.
+ * @remarks
+ * See `Readme.md` file distributed in subproject's root dir for
+ * additional information about this maker. See JSDoc/TSDoc/TypeDoc
+ * documentation (this ones!) for supported configuration options.
  *
  * @example
  * ```js
  * {
- *   name: "@reforged/maker-appimage",
+ *   name: "@reforged/maker-appimage"
  *   config: {
  *     options: {
- *       // Package name.
- *       name: "example-app",
- *       // Executable name.
- *       bin: "app",
- *       // Human-friendly name of the application.
- *       productName: "Example Electron Application",
- *       // `GenericName` in generated `.desktop` file.
- *       genericName: "Example application",
- *       // Path to application's icon.
- *       icon: "/path/to/icon.png",
- *       // Desktop file to be used instead of the configuration above.
- *       desktopFile: "/path/to/example-app.desktop",
- *       // Release of `AppImage/AppImageKit`, either number or "continuous".
- *       AppImageKitRelease: "continuous",
- *       // Support parsing Arch Linux '*_flags.conf' file.
- *       flagsFile: "true"
+ *       categories: ["Network"],
+ *       icon: "path/to/icon.svg"
  *     }
  *   }
  * }
