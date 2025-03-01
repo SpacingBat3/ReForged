@@ -19,7 +19,7 @@ import {
 } from "fs/promises";
 import { EventEmitter } from "events";
 
-import { debug, format } from "util";
+import { debug, format, styleText } from "util";
 import { MakerBase } from "@electron-forge/maker-base";
 import sanitizeName from "@spacingbat3/lss";
 
@@ -44,6 +44,7 @@ const enum RemoteDefaults {
 }
 
 const d:DebugLoggerFunction = (() => {
+  const fmt = `@reforged/maker-appimage %o: %s ${styleText(["gray"],"(+%ims)")}`
   const timer = function*(){for(let timeNext,time = process.uptime();;time=timeNext)
     yield (timeNext=process.uptime())-time
   }()
@@ -51,10 +52,10 @@ const d:DebugLoggerFunction = (() => {
       .test(process.env["DEBUG"]??""))
     // Function that logs similarly to debugLog.
     return (...args:unknown[]) => console.error(
-      "@reforged/maker-appimage %o: %s (+%f ms)",
+      fmt,
       process.pid,
       format(...args),
-      (timer.next().value*1000).toFixed(2)
+      timer.next().value*1000
     );
   // NO-OP function
   return () => {};
