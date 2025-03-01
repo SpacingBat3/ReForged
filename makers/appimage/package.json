@@ -36,5 +36,9 @@
   },
   "engines": {
     "node": ">=19.0.0 || ^18.11.0"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/SpacingBat3/ReForged?sponsor=1"
   }
 }

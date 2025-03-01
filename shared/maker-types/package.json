@@ -14,5 +14,9 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/SpacingBat3/ReForged?sponsor=1"
   }
 }
