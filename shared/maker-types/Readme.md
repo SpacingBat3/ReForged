@@ -1,4 +1,4 @@
-# `@reforged/maker-appimage`
+# `@reforged/maker-types`
 
 A shared types package for makers within the [ReForged][1] project.
 
