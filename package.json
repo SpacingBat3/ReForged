@@ -18,7 +18,10 @@
   },
   "homepage": "https://spacingbat3.github.io/ReForged/",
   "devDependencies": {
+    "@mdit/plugin-footnote": "^0.22.2",
+    "@mdit/plugin-tasklist": "^0.22.1",
     "@reforged/tsconfig": "file:shared/tsconfig",
+    "@types/markdown-it": "^14.1.2",
     "@types/node": "^22.3.0",
     "@types/semver": "^7.3.13",
     "c8": "^10.1.3",
