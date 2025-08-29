@@ -2,7 +2,7 @@ import type { ForgeConfig } from "@electron-forge/shared-types";
 import MakerAppImage from "@reforged/maker-appimage";
 import PluginLauncher from "@reforged/plugin-launcher";
 
-const config = {
+export default {
   packagerConfig: { executableName: "reforged-example-app" as const },
   rebuildConfig: {},
   makers: [ new MakerAppImage() ] as const,
@@ -13,5 +13,3 @@ const config = {
     'exec "$ME.bin" "$@"'
   ]}) ]
 } satisfies ForgeConfig;
-
-export default config;
