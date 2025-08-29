@@ -3,7 +3,7 @@ name: Node.js CI/CD
 on:
   push:
     branches: [ master ]
-    tags:     [ appimage/v*, maker-types/v* ]
+    tags:     [ appimage/v*, maker-types/v*, launcher/v* ]
   pull_request:
     branches: [ master ]
 
@@ -63,7 +63,8 @@ jobs:
         pkg: >-
           ${{ (startsWith(github.ref_name,'appimage/v') && fromJson('["maker-appimage"]') ||
             startsWith(github.ref_name,'maker-types/v') && fromJson('["maker-types"]') ||
-            fromJson('["maker-appimage","maker-types"]')
+            startsWith(github.ref_name,'maker-types/v') && fromJson('["plugin-launcher"]') ||
+            fromJson('["maker-appimage","maker-types","plugin-launcher"]')
           )}}
     steps:
       # Initialization

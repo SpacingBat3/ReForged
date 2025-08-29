@@ -6,6 +6,7 @@
   },
   "references": [
     {"path": "makers/appimage/tsconfig.json"},
+    {"path": "plugins/launcher/tsconfig.json"},
     {"path": "example/tsconfig.json"}
   ],
   "files": []

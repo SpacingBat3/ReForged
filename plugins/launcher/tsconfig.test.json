@@ -1,0 +1,15 @@
+{
+  "extends": "@reforged/tsconfig",
+  "compilerOptions": {
+    "tsBuildInfoFile": "../../cache/tsc/maker-appimage.test.json",
+    "rootDir": "./test",
+    "noEmit": true
+  },
+  "files": [
+    "test/make.ts",
+    "test/struct.ts"
+  ],
+  "references": [
+    {"path": "tsconfig.json"},
+  ],
+}

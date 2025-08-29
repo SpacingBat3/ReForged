@@ -1,0 +1,12 @@
+{
+  "extends": "@reforged/tsconfig",
+  "compilerOptions": {
+    "tsBuildInfoFile": "../../cache/tsc/maker-appimage.json",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declarationDir": "./types"
+  },
+  "files": [
+    "src/main.ts"
+  ]
+}

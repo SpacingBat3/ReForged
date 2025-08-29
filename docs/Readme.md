@@ -29,7 +29,7 @@ project are:
   - [ ] Support checksum embedding into AppImage runtime.
   - [ ] Support AppImage signing (`gpg`).
 
-- [ ] `@reforged/plugin-shell` (WIP name) - adds shell script to the app
+- [X] `@reforged/plugin-launcher` - adds executable to the app
   directory to be launched instead of binary, for additional features not yet
   possible to be achieved within Electron app directly.
 
@@ -47,3 +47,4 @@ distributed, see [`COPYING`](../COPYING) file.
 [AppImage]: https://appimage.org
 [forge]:    https://github.com/electron/forge
 [maker1]:   https://www.npmjs.com/package/@reforged/maker-appimage
+[plugin1]:  https://www.npmjs.com/package/@reforged/plugin-launcher

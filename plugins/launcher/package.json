@@ -1,0 +1,16 @@
+{
+  "name": "@reforged/plugin-launcher",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "(WIP) Provide an executable wrapper for your Electron software.",
+  "main": "dist/main.js",
+  "scripts": {
+    "prepack": "tsc",
+    "test": "tsc -b tsconfig.test.json && NODE_NO_WARNINGS=1 node --test --experimental-strip-types",
+    "test:coverage": "c8 -r json npm test --"
+  },
+  "types": "./types/main.d.ts",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

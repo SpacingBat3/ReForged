@@ -4,9 +4,9 @@ node_modules/
 dist/
 types/
 cache/
-!makers/*/types/
-makers/*/types/*
-!makers/*/types/config.d.ts
+!/*/*/types/
+/*/*/types/*
+!/*/*/types/config.d.ts
 # Ignore lockfiles other than NPM ones
 *lock*
 !package-lock.json

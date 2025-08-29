@@ -8,6 +8,7 @@ export default {
   entryPointStrategy: "packages",
   entryPoints: [
     "../makers/appimage",
+    "../plugins/launcher",
     "../shared/maker-types"
   ],
   commentStyle: "jsdoc",

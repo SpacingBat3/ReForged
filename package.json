@@ -30,6 +30,7 @@
   },
   "workspaces": [
     "makers/*/",
+    "plugins/*/",
     "shared/*/",
     "example"
   ],

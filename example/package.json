@@ -21,6 +21,7 @@
   "devDependencies": {
     "@electron-forge/cli": "^7.1.0",
     "@reforged/maker-appimage": "file:../makers/appimage",
+    "@reforged/plugin-launcher": "file:../plugins/launcher",
     "electron": "latest"
   },
   "private": true
