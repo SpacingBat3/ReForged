@@ -9,11 +9,27 @@
     "test": "tsc -b tsconfig.test.json && NODE_NO_WARNINGS=1 node --test --experimental-strip-types",
     "test:coverage": "c8 -r json npm test --"
   },
+  "homepage": "https://spacingbat3.github.io/ReForged/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SpacingBat3/ReForged.git"
+  },
   "types": "./types/main.d.ts",
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "electron",
+    "electron-forge",
+    "plugin",
+    "reforged",
+    "packaging",
+    "shell",
+    "script"
+  ],
+  "author": "SpacingBat3 <git@spacingbat3.anonaddy.com> (https://github.com/SpacingBat3)",
   "license": "ISC",
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@electron-forge/plugin-base": "^7.8.3"
   }
 }
