@@ -29,7 +29,7 @@ project are:
   - [ ] Support checksum embedding into AppImage runtime.
   - [ ] Support AppImage signing (`gpg`).
 
-- [X] `@reforged/plugin-launcher` - adds executable to the app
+- [X] [`@reforged/plugin-launcher`][plugin1] - adds executable to the app
   directory to be launched instead of binary, for additional features not yet
   possible to be achieved within Electron app directly.
 
