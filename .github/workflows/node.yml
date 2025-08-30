@@ -80,11 +80,14 @@ jobs:
       # Create package & publish it as artifact for inspection
       - name: Create package tarball
         id:   pack
-        run:  echo "meta=$(npm -w @reforged/${{ matrix.pkg }} pack --json | tr -d ' \n')" >> "$GITHUB_OUTPUT"
+        run: |
+          {
+            printf 'meta<<\0\n'
+            npm -w "@reforged/${{ matrix.pkg }}" pack --json
+            printf '\0\n'
+          } >> "$GITHUB_OUTPUT"
       - name: Upload package as artifact
         uses: actions/upload-artifact@v4
-        env:
-          test: "foo"
         with:
           name: reforged-${{ matrix.pkg }}
           path: ${{ fromJson(steps.pack.outputs.meta)[0].filename }}
