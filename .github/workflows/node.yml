@@ -63,7 +63,7 @@ jobs:
         pkg: >-
           ${{ (startsWith(github.ref_name,'appimage/v') && fromJson('["maker-appimage"]') ||
             startsWith(github.ref_name,'maker-types/v') && fromJson('["maker-types"]') ||
-            startsWith(github.ref_name,'maker-types/v') && fromJson('["plugin-launcher"]') ||
+            startsWith(github.ref_name,'launcher/v') && fromJson('["plugin-launcher"]') ||
             fromJson('["maker-appimage","maker-types","plugin-launcher"]')
           )}}
     steps:
@@ -94,6 +94,6 @@ jobs:
       # Publish to NPM (for tags)
       - name: Publish to NPM
         if:   ${{ github.ref_type == 'tag' }}
-        run:  npm -w @reforged/${{ matrix.pkg }} publish --provenance
+        run:  npm -w "@reforged/${{ matrix.pkg }}" publish --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
