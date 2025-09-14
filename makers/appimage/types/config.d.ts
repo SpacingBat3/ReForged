@@ -1,6 +1,7 @@
 import {MakerConfig, MakerUnixOptions} from "@reforged/maker-types"
 
 interface MakerAppImageConfigOptions extends MakerUnixOptions {
+    override icon?: string,
     /**
      * Whenever calculate and embed MD5 digest in the runtime.
      *
