@@ -1,7 +1,7 @@
 (process as {setSourceMapsEnabled?:(arg0:boolean)=>void}).setSourceMapsEnabled?.(true);
 
 import { tmpdir } from "os";
-import { resolve, extname, relative } from "path";
+import { resolve, relative } from "path";
 import {
   existsSync,
   rmSync
@@ -10,7 +10,6 @@ import {
   mkdir,
   mkdtemp,
   writeFile,
-  copyFile,
   readFile,
   chmod,
   symlink,
@@ -28,9 +27,10 @@ import {
   joinFiles,
   mkSquashFs,
   mapArch,
-  getImageMetadata,
   getSquashFsVer
 } from "./utils.js"
+
+import storeIcons from "./image.js"
 
 import type MakerAppImageConfig from "../types/config.d.ts";
 import type { MakerMeta } from "./utils.js";
@@ -154,8 +154,6 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         "Make sure 'packagerConfig.executableName' or 'config.options.bin'",
         "in Forge config are pointing to valid file."
       ].join(" "));
-    /** Icon metadata, ie. detected dimensions and filetype. */
-    const iconMeta = icon ? readFile(icon).then(icon => getImageMetadata(icon)) : Promise.resolve(undefined);
     /** A temporary directory used for the packaging. */
     const workDir = await mkdtemp(resolve(tmpdir(), `.${productName}-${packageJSON.version}-${targetArch}-`));
     d("Setup cleanup hooks for error scenarios.")
@@ -176,21 +174,14 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       lib: resolve(workDir, 'usr/lib/'),
       data: resolve(workDir, 'usr/lib/', name),
       bin: resolve(workDir, 'usr/bin'),
-      icons: iconMeta.then(meta => meta && meta.width && meta.height ?
-        resolve(workDir, 'usr/share/icons/hicolor', meta.width.toFixed(0)+'x'+meta.height.toFixed(0)) :
-        null
-      )
+      icons: resolve(workDir, 'usr/share/icons/hicolor')
     }
-    const iconPath = icon ? resolve(workDir, name+extname(icon)) : undefined;
     const binPath = resolve(directories.bin,bin);
     d("Queuing asynchronous jobs batches.")
-    /** First-step jobs, which does not depend on any other job. */
-    const earlyJobs = [
+    const jobs = [
       // Create further directory tree (0,1,2)
       mkdir(directories.lib, {recursive: true, mode: 0o755}),
       mkdir(directories.bin, {recursive: true, mode: 0o755}),
-      directories.icons
-        .then(path => path ? mkdir(path, {recursive: true, mode: 0o755}).then(() => path) : undefined),
       // Save `.desktop` to file (3)
       sources.desktop
         .then(data => writeFile(
@@ -198,36 +189,25 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         ).then(() => d("Wrote '.desktop' file to 'workDir'.")),
       // Create `AppRun` as a link to bin/ (4)
       symlink(relative(workDir,binPath),resolve(workDir,'AppRun'),"file"),
-      // Save icon to file and symlink it as `.DirIcon` (5)
-      icon ? iconPath && existsSync(icon) ?
-        copyFile(icon, iconPath)
-          .then(() => symlink(
-            relative(workDir, iconPath), resolve(workDir, ".DirIcon"), 'file')
-          )
-        : Promise.reject(Error("Invalid icon / icon path.")) : Promise.resolve(),
-    ] as const;
-    const lateJobs = [
-      // Write shell script to file or create a symlink
-      earlyJobs[1]
+      // Populate icons
+      storeIcons(icon,directories.icons,workDir,name),
+      // Ensure that root folder has proper file mode
+      chmod(workDir, 0o755)
+    ] as [Promise<unknown>,Promise<unknown>,...Promise<unknown>[]];
+    jobs.push(
+      // Create a symlink in usr/bin
+      jobs[1]
         .then(() => symlink(
           relative(directories.bin, resolve(directories.data,bin)),binPath,"file")
         ),
       // Copy Electron app to AppImage directories
-      earlyJobs[0]
+      jobs[0]
         .then(() => cp(dir, directories.data, {errorOnExist:true,recursive:true,verbatimSymlinks:true}))
         .then(() => d("Copied Electron app data.")),
-      // Copy icon to `usr` directory whenever possible
-      Promise.all([earlyJobs[2],earlyJobs[5]])
-        .then(([path]) => icon && path ?
-          copyFile(icon, resolve(path,name+extname(icon))) :
-          void 0
-        ),
-      // Ensure that root folder has proper file mode
-      chmod(workDir, 0o755)
-    ] as const;
+    );
     d("Waiting for queued jobs to finish.")
-    // Wait for early/late jobs to finish
-    await(Promise.all([...earlyJobs,...lateJobs]));
+    // Wait for all queued jobs to finish
+    await(Promise.all(jobs));
     d("Preparing 'mksquashfs' arguments for data image generation.")
     // Run `mksquashfs` and wait for it to finish
     const mkSquashFsArgs = [workDir, outFile];

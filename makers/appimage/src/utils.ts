@@ -15,12 +15,6 @@ export interface MakerMeta extends MakerOptions {
   targetArch: ForgeArch;
 }
 
-interface ImageMetadata {
-  type: "PNG"|"SVG"|"XPM3"|"XPM2";
-  width: number|null;
-  height: number|null;
-}
-
 /** Function argument definitions for {@linkcode mkSqFsEvt}. */
 interface mkSqFSListenerArgs {
   close: [
@@ -206,17 +200,15 @@ export async function joinFiles(...filesAndBuffers:readonly(string|ArrayBufferLi
       buffArr.push(readFile(path));
     else
       throw new Error(`Unable to concat '${path}': Invalid path.`);
-  return Promise.all(buffArr)
-    .then(buffArr => {
-      // Concat all buffers into the new ones.
-      const length = buffArr.reduce((p,c)=>p+c.length,0);
-      const result = new Uint8Array(length);
-      let preBuffLen = 0;
-      for(const buff of buffArr)
-        result.set(buff,preBuffLen),
-        preBuffLen=buff.length;
-      return result;
-    });
+  const arr = await Promise.all(buffArr);
+  // Concat all buffers into the new ones.
+  const length = arr.reduce((p,c)=>p+c.length,0);
+  const result = new Uint8Array(length);
+  let preBuffLen = 0;
+  for(const buff of arr)
+    result.set(buff,preBuffLen),
+    preBuffLen=buff.length;
+  return result;
 }
 /**
  * Maps Node.js architecture to the AppImage-friendly format.
@@ -227,96 +219,3 @@ export const mapArch:Readonly<Partial<Record<ForgeArch,AppImageArch>>> = Object.
   arm64:  "aarch64",
   armv7l: "armhf"
 });
-
-/**
- * A function to validate if the type of any value is like the one in
- * {@link ImageMetadata} interface.
- *
- * @param meta Any value to validate the type of.
- * @returns Whenever `meta` is an {@link ImageMetadata}-like object.
- */
-function validateImageMetadata(meta: unknown):meta is ImageMetadata {
-  if(typeof meta !== "object" || meta === null)
-    return false;
-  if(!("type" in meta) || ((meta as {type:unknown}).type !== "PNG" && (meta as {type:unknown}).type !== "SVG"))
-    return false;
-  if(!("width" in meta) || (typeof (meta as {width:unknown}).width !== "number" && (meta as {width:unknown}).width !== null))
-    return false;
-  if(!("height" in meta) || (typeof (meta as {height:unknown}).height !== "number" && (meta as {height:unknown}).height !== null))
-    return false;
-  return true;
-}
-
-const enum FileHeader {
-  PNG = 0x89504e47,
-  XPM2 = 0x58504d32,
-  XPM3 = 0x58504D20
-}
-
-/**
- * A function to fetch metadata from buffer in PNG or SVG format.
- *
- * @remarks
- *
- * For PNGs, it gets required information (like image width or height)
- * from IHDR header (if it is correct according to spec), otherwise it sets
- * dimension values to `null`.
- *
- * For SVGs, it gets information about the dimensions from `<svg>` tag. If it is
- * missing, this function will return `null` for `width` and/or `height`.
- *
- * This function will also recognize file formats based on *MAGIC* headers – for
- * SVGs, it looks for existence of `<svg>` tag, for PNGs it looks if file starts
- * from the specific bytes.
- *
- * @param image PNG/SVG/XPM image buffer.
- */
-export function getImageMetadata(image:Buffer):ImageMetadata {
-  const svgMagic = {
-    file:   /<svg ?[^>]*>/,
-    width:  /<svg (?!width).*.width=["']?(\d+)(?:px)?["']?[^>]*>/,
-    height: /<svg (?!height).*.height=["']?(\d+)(?:px)?["']?[^>]*>/
-  };
-  const partialMeta: Partial<ImageMetadata> = {};
-  if(image.readUInt32BE() === FileHeader.PNG)
-    partialMeta["type"] = "PNG";
-  else if(image.readUInt32BE(2) === FileHeader.XPM2)
-    partialMeta["type"] = "XPM2";
-  else if(image.readUInt32BE(3) === FileHeader.XPM3)
-    partialMeta["type"] = "XPM3";
-  else if(svgMagic.file.test(image.toString("utf8")))
-    partialMeta["type"] = "SVG";
-  else
-    throw Error("Unsupported image format (FreeDesktop spec expects images only of following MIME type: PNG, SVG and XPM).");
-  switch(partialMeta.type) {
-    // Based on specification by W3C: https://www.w3.org/TR/PNG/
-    case "PNG": {
-      const prefixIHDR = 4+image.indexOf("IHDR")
-      const rawMeta = {
-        width: prefixIHDR === 3 ? null : image.readInt32BE(prefixIHDR),
-        height: prefixIHDR === 3 ? null : image.readInt32BE(prefixIHDR+4)
-      }
-      partialMeta["width"] = (rawMeta.width??0) === 0 ? null : rawMeta.width;
-      partialMeta["height"] = (rawMeta.height??0) === 0 ? null : rawMeta.height;
-      break;
-    }
-    case "SVG": {
-      const svgImage = image.toString("utf8");
-      const rawMeta = {
-        width: parseInt(svgImage.match(svgMagic.width)?.[1]??""),
-        height: parseInt(svgImage.match(svgMagic.height)?.[1]??""),
-      }
-      partialMeta["width"] = isNaN(rawMeta["width"]) ? null : rawMeta["width"];
-      partialMeta["height"] = isNaN(rawMeta["height"]) ? null : rawMeta["height"];
-      break;
-    }
-    default:
-      if(typeof partialMeta["type"] === "string")
-        throw new Error(`Not yet supported image format: '${partialMeta["type"]}'.`);
-      else
-        throw new TypeError(`Invalid type of 'partialMeta.type': '${typeof partialMeta["type"]}' (should be 'string')`);
-  }
-  if(validateImageMetadata(partialMeta))
-    return partialMeta;
-  throw new TypeError("Malformed function return type! ("+JSON.stringify(partialMeta)+").");
-}
