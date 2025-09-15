@@ -17,9 +17,11 @@ import {
   access,
   chmod,
   constants,
+  lstat,
   mkdtemp,
   open,
   readdir,
+  readlink,
   rm,
   writeFile
 } from "node:fs/promises";
@@ -35,9 +37,20 @@ import assert from "node:assert";
 import MakerAppImage from "@reforged/maker-appimage";
 
 import type { ForgeArch } from "@reforged/maker-appimage";
+import type { IconSet   } from "@reforged/maker-types";
+
+const icon: IconSet = {};
+
+const icons = Object.freeze([
+  ["scalable","svg"],
+  ["1024x1024","png"]
+] as const);
+
+for(const str of icons)
+  icon[str[0]] = resolve(import.meta.dirname,`res/empty_${str[0]}.${str[1]}`);
 
 /** Maker to test. */
-const maker = new MakerAppImage();
+const maker = new MakerAppImage({ options: { icon } });
 await maker.prepareConfig(process.arch);
 
 // Mock app metadata
@@ -88,15 +101,9 @@ const skip = maker.isSupportedOnCurrentPlatform() ?
   `One or more binaries are missing: ${maker.requiredExternalBinaries.join(', ')}` :
   `Unsupported platform: ${process.platform}-${process.arch}`;
 
-suites.push(describe("MakerAppimage is working correctly", {skip}, () => {
-  let AResolve: (arg0: string) => any, AReject: (reason?: unknown) => void;
-  /** Resolved output of successful make, to re-use it in another tests. */
-  const AppImageDir:Promise<string> = new Promise(
-    (resolve,reject) => { AResolve = resolve, AReject = reject }
-  );
-
-  it("creates valid AppImage binary", async() => {
-    maker.make({
+suites.push(describe("MakerAppimage is working correctly", {skip}, async() => {
+  await it("successfully creates AppImage binary in predictable path", async(ctx) => {
+    const AppImageDir = maker.make({
       packageJSON,
       forgeConfig,
       appName: packageJSON.productName,
@@ -104,10 +111,8 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, () => {
       makeDir: await mockMkPath,
       targetArch: process.arch as ForgeArch,
       targetPlatform: process.platform
-    }).then(dir => AResolve(dir[0]),reason => AReject(reason));
-
+    }).then(([path]) => path);
     await assert.doesNotReject(AppImageDir);
-
     assert.strictEqual(
       await AppImageDir,
       resolve(
@@ -117,44 +122,97 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, () => {
         `${packageJSON.productName}-${packageJSON.version}-${process.arch}.AppImage`
       )
     )
-  });
-
-  it("cleans-up workDir after completion", async () => {
-    await AppImageDir;
+    ctx.test("that is an ELF file", async() => {
+      const fd = await open(await AppImageDir);
+      const buff = new Uint8Array(8);
+      await fd.read(buff,0,8);
+      assert.strictEqual(
+        [...buff].map(v=>v.toString(16)).join(' '),
+        // ELF magic HEX
+        "7f 45 4c 46 2 1 1 0"
+      )
+      fd.close();
+    })
+    ctx.test("that is runnable and working fine", async ctx => {
+      const exec = promisify(execFile);
+      const AppImage = await AppImageDir
+      // Skip this test for non-exec tmpdir.
+      if(await access(AppImage,constants.X_OK).then(_=>false,_=>true)) {
+        await chmod(AppImage,0o755);
+        return access(AppImage,constants.X_OK).then(
+          ()=>Promise.reject("Maker failed to set exec permissions"),
+          ()=>ctx.skip("Non-executable tmpdir.")
+        );
+      }
+      const cp = exec(AppImage)
+      await assert.doesNotReject(cp);
+      assert.strictEqual((await cp).stdout,"Hello world!\n")
+    })
+    ctx.test("that contains valid icon hierarchy", async ctx => {
+      const AppImage = await AppImageDir
+      // Skip this test for non-exec tmpdir (due to appimage mounting).
+      if(await access(AppImage,constants.X_OK).then(_=>false,_=>true)) {
+        await chmod(AppImage,0o755);
+        return access(AppImage,constants.X_OK).then(
+          ()=>Promise.reject("Maker failed to set exec permissions"),
+          ()=>ctx.skip("Non-executable tmpdir.")
+        );
+      }
+      const cp = execFile(AppImage, ["--appimage-mount"])
+      // Wait for mountpoint.
+      const mount = await new Promise<string>((resolve) => {
+        let data = "";
+        cp.stdout?.once("data", (chunk:string) => {
+          data+=String(chunk);
+          if(data.includes("\n")) resolve(data.trimEnd())
+        })
+        cp.stdout?.once("end", () => resolve(data))
+        cp.stdout?.once("close",() => resolve(data));
+      })
+      // Do FS checks
+      assert.ok(mount);
+      const test = [];
+      test.push(ctx.test("with top-level symlinks", async () => {
+        const promises: Promise<unknown>[] = [];
+        for(const path of [".DirIcon",`${packageJSON.name}.svg`]) {
+          const file = resolve(mount,path);
+          promises.push(Promise.all([lstat(file),readlink(file)]).then(([stats,link]) => {
+            assert.ok(stats.isSymbolicLink(),`${path} is not symlink`);
+            // Check if default icon is scalable
+            assert.strictEqual(
+              link,
+              `usr/share/icons/hicolor/scalable/apps/${packageJSON.name}.svg`
+            );
+          }));
+        }
+        await Promise.all(promises);
+      }))
+      test.push(ctx.test("with icons in 'usr/share/icons'", async () => {
+        const promises: Promise<unknown>[] = [];
+        for(const path of icons)
+          promises.push(assert.doesNotReject(access(
+            resolve(mount,"usr/share/icons/hicolor",path[0],"apps",`${packageJSON.name}.${path[1]}`),
+            constants.R_OK
+          )));
+        await Promise.all(promises);
+      }))
+      try {
+        assert.ok(mount);
+        await Promise.all(test);
+      } catch(err) {
+        cp.kill();
+        throw err;
+      }
+      cp.kill();
+    })
+  })
+  it("cleans-up working directory after completion", async () => {
     assert.ok(
       // We know workDir is somewhere in tmpdir, but not really its exact path.
       // Hence fail for all possible workDir matches.
       !(await readdir(tmpdir()))
         .some(dir => dir.startsWith(`.${packageJSON.productName}-${packageJSON.version}-${process.arch}-`))
     )
-  })
-
-  it("outputs AppImage that is an ELF file", async() => {
-    const fd = await open(await AppImageDir);
-    const buff = new Uint8Array(8);
-    await fd.read(buff,0,8);
-    assert.strictEqual(
-      [...buff].map(v=>v.toString(16)).join(' '),
-      // ELF magic HEX
-      "7f 45 4c 46 2 1 1 0"
-    )
-    fd.close();
-  })
-
-  it("outputs AppImage that is runnable and working fine", async ctx => {
-    const exec = promisify(execFile);
-    const AppImage = await AppImageDir
-    // Skip this test for non-exec tmpdir.
-    if(await access(AppImage,constants.X_OK).then(_=>false,_=>true)) {
-      await chmod(AppImage,0o755);
-      return access(AppImage,constants.X_OK).then(
-        ()=>Promise.reject("Maker failed to set exec permissions"),
-        ()=>ctx.skip("Non-executable tmpdir.")
-      );
-    }
-    const cp = exec(AppImage)
-    await assert.doesNotReject(cp);
-    assert.strictEqual((await cp).stdout,"Hello world!\n")
   })
 }));
 
