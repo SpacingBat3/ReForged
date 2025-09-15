@@ -122,7 +122,8 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, async() => {
         `${packageJSON.productName}-${packageJSON.version}-${process.arch}.AppImage`
       )
     )
-    ctx.test("that is an ELF file", async() => {
+    const tests: Promise<unknown>[] = [];
+    tests.push(ctx.test("that is an ELF file", async() => {
       const fd = await open(await AppImageDir);
       const buff = new Uint8Array(8);
       await fd.read(buff,0,8);
@@ -132,8 +133,8 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, async() => {
         "7f 45 4c 46 2 1 1 0"
       )
       fd.close();
-    })
-    ctx.test("that is runnable and working fine", async ctx => {
+    }));
+    tests.push(ctx.test("that is runnable and working fine", async ctx => {
       const exec = promisify(execFile);
       const AppImage = await AppImageDir
       // Skip this test for non-exec tmpdir.
@@ -147,8 +148,8 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, async() => {
       const cp = exec(AppImage)
       await assert.doesNotReject(cp);
       assert.strictEqual((await cp).stdout,"Hello world!\n")
-    })
-    ctx.test("that contains valid icon hierarchy", async ctx => {
+    }));
+    tests.push(ctx.test("that contains valid icon hierarchy", async ctx => {
       const AppImage = await AppImageDir
       // Skip this test for non-exec tmpdir (due to appimage mounting).
       if(await access(AppImage,constants.X_OK).then(_=>false,_=>true)) {
@@ -204,7 +205,8 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, async() => {
         throw err;
       }
       cp.kill();
-    })
+    }))
+    await Promise.all(tests);
   })
   it("cleans-up working directory after completion", async () => {
     assert.ok(
