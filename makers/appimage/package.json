@@ -25,7 +25,7 @@
   "author": "SpacingBat3 <git@spacingbat3.anonaddy.com> (https://github.com/SpacingBat3)",
   "license": "ISC",
   "dependencies": {
-    "@electron-forge/maker-base": "^6.0.0 || ^7.0.0",
+    "@electron-forge/maker-base": "^6.0.0 || ^7.0.0 || ^8.0.0-alpha.3",
     "@reforged/maker-types": "^2.1.0",
     "@spacingbat3/lss": "^1.0.0",
     "semver": "^7.3.8"
