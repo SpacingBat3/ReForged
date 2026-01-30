@@ -94,7 +94,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
   }: MakerMeta, ...vendorExt: unknown[]): Promise<[AppImagePath:string]> {
     d("Initializing maker metadata.")
     const {
-      actions, categories, compressor, genericName, icon
+      actions, categories, compressor, genericName, icon, mimeType, keywords
     } = (this.config.options ?? {});
     let {
       name, bin, productName, runtime
@@ -140,6 +140,8 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
           Exec: `${bin.includes(" ") ? `"${binShell}"` : bin} %U`,
           Icon: icon ? name : undefined,
           Categories: categories,
+          MimeType: mimeType,
+          Keywords: keywords,
           "X-AppImage-Name": name,
           "X-AppImage-Version": packageJSON.version as string,
           "X-AppImage-Arch": appImageArch
