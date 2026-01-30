@@ -139,9 +139,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
           GenericName: genericName,
           Exec: `${bin.includes(" ") ? `"${binShell}"` : bin} %U`,
           Icon: icon ? name : undefined,
-          Categories: categories ?
-            categories.join(';')+';' :
-            undefined,
+          Categories: categories,
           "X-AppImage-Name": name,
           "X-AppImage-Version": packageJSON.version as string,
           "X-AppImage-Arch": appImageArch
