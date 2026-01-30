@@ -1,4 +1,10 @@
-import { FreeDesktopCategories } from "./db.d.ts";
+import { FreeDesktopCategories, OfficialMimeTypes } from "./db.d.ts";
+
+/** Type representing one of official MIME groups. */
+type MimeGroups =
+  | "application" | "audio" | "font"
+  | "haptics" | "image" | "message" | "model"
+  | "multpart" | "text" | "video"
 
 /** Common ReForged maker config structure */
 interface MakerConfig<T extends MakerOptions> {
@@ -105,6 +111,21 @@ interface MakerUnixOptions extends MakerOptions {
    * Path to desktop file to be used instead of generating a new one.
    */
   desktopFile?: string;
+  /**
+   * MIME types to associate with given desktop file.
+   *
+   * @remarks
+   * Can be used to associate custom protocols with `x-scheme-handler/[protocol]`.
+   */
+  mimeType?: (
+    | OfficialMimeTypes
+    | `${MimeGroups}/${"vnd." | "x-"}${string}`
+    | `${"x-" | "vnd."}${string}/${string}`
+  )[];
+  /**
+   * Additional keywords that improve application searchability.
+   */
+  keywords?: string[]
 }
 
 interface FreeDesktopAction {
