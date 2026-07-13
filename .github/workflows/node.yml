@@ -32,6 +32,7 @@ jobs:
         run:  npm run build
       # Lint
       - name: Lint project
+        if: ${{ matrix.node-version != '18.x' }}
         run:  npm run lint
       # Test
       - name: Run tests with coverage+test reporting
