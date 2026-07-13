@@ -10,7 +10,7 @@
     "package": "tsc && electron-forge package",
     "make": "tsc && electron-forge make",
     "publish": "tsc && electron-forge publish",
-    "lint": "echo \"No linting configured\""
+    "lint": "oxlint"
   },
   "author": "SpacingBat3 <git@spacingbat3.anonaddy.com> (https://github.com/SpacingBat3)",
   "license": "UNLICENSE",

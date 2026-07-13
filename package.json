@@ -6,7 +6,8 @@
     "build": "tsc -b",
     "test": "tsc -b tsconfig.test.json && NODE_NO_WARNINGS=1 node --test --experimental-strip-types",
     "test:coverage": "c8 -r json npm test --",
-    "docs": "typedoc"
+    "docs": "typedoc",
+    "lint": "oxlint"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
     "@types/node": "^22.3.0",
     "@types/semver": "^7.3.13",
     "c8": "^11.0.0",
+    "oxlint": "^1.73.0",
     "typedoc": "^0.28.14",
     "typescript": "^6.0.2"
   },

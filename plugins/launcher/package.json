@@ -7,7 +7,8 @@
   "scripts": {
     "prepack": "tsc",
     "test": "tsc -b tsconfig.test.json && NODE_NO_WARNINGS=1 node --test --experimental-strip-types",
-    "test:coverage": "c8 -r json npm test --"
+    "test:coverage": "c8 -r json npm test --",
+    "lint": "oxlint"
   },
   "homepage": "https://spacingbat3.github.io/ReForged/",
   "repository": {

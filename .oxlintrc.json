@@ -1,0 +1,26 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "oxc",
+    "eslint",
+    "typescript",
+    "import",
+    "node",
+    "promise",
+    "unicorn"
+  ],
+  "categories": {
+    "correctness": "error",
+    "perf": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "unicorn/no-array-sort": ["warn", { "allowAfterSpread": true }],
+    "no-shadow": ["warn", {"allow": ["ctx"]}]
+  },
+  "env": {
+    "es2022": true,
+    "node": true,
+    "browser": false
+  }
+}
