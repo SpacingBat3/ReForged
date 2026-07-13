@@ -29,11 +29,9 @@ function createWindow() {
 
   // Deny all requests (to permissions / devices).
   {
-    const reject = () => false, { session } = mainWindow.webContents;
-    session.setPermissionCheckHandler(reject);
-    session.setPermissionRequestHandler(reject);
-    session.setDevicePermissionHandler(reject);
-    session.setBluetoothPairingHandler(reject);
+    const { session } = mainWindow.webContents;
+    session.setPermissionCheckHandler(()=>false);
+    session.setPermissionRequestHandler((_wc,_p,callback)=>callback(false));
   }
 
   // Open the DevTools.
