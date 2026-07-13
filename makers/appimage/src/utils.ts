@@ -97,32 +97,37 @@ interface mkSqFsEvt extends EventEmitter {
   emit(..._:mkSqFSEvtEmit<"error">): boolean;
 }
 
+function toEscapeSeq<T>(string:T): T extends string ? string : T {
+  if(typeof string === "string") return string
+    .replaceAll(/\\(?!["`trn])/g,"\\\\")
+    .replaceAll("`","\\`")
+    .replaceAll("\t", "\\t")
+    .replaceAll("\r", "\\r")
+    .replaceAll("\n", "\\n") as
+    T extends string ? string : T
+  return string as T extends string ? string : T;
+}
+
 // FIXME: Library considerations? Should we make for it separate module?
-export function generateDesktop(desktopEntry: Partial<Record<string,string[]|string|null>>, actions?: Record<string,Partial<Record<string,string|null>>&{ Name: string }>) {
-  function toEscapeSeq<T>(string:T): T extends string ? string : T {
-    if(typeof string === "string")
-      return string
-        .replaceAll(/\\(?!["`trn])/g,"\\\\")
-        .replaceAll("`","\\`")
-        .replaceAll("\t", "\\t")
-        .replaceAll("\r", "\\r")
-        .replaceAll("\n","\\n") as T extends string ? string : T
-    return string as T extends string ? string : T;
-  }
+export function generateDesktop(desktopEntry: Partial<Record<string, string[] | string | null>>,
+    actions?: Record<string, Partial<Record<string, string | null>> & { Name: string }>) {
+
   const template:Record<"desktop"|"actions",string[]> = { desktop:[], actions:[] };
-  let actionsKey:string|null = null;
+  let actionsCol:string[] = [];
   template.desktop.push('[Desktop Entry]');
   for(const entry of Object.entries(desktopEntry)) if(entry[0] !== "Actions" && entry[1] !== undefined && entry[1] !== null) {
     if(Array.isArray(entry[1])) entry[1]=entry[1].length?entry[1].join(";")+";":"";
     template.desktop.push(entry.map(v => toEscapeSeq(v)).join('='));
   }
-  if(actions) for(const [name,record] of Object.entries(actions)) if(/[a-zA-Z]/.test(name)) {
-    actionsKey === null ? actionsKey = name : actionsKey += ";"+name;
-    template.actions.push('\n[Desktop Action '+name+']');
-    for(const entry of Object.entries(record)) if(entry[1] !== undefined && entry[1] !== null)
+  // Actions
+  if (actions) for (const [key,val] of Object.entries(actions)) if(/[a-zA-Z]/.test(key)) {
+    actionsCol.push(key);
+    template.actions.push(`\n[Desktop Action ${key}]`);
+    for(const entry of Object.entries(val)) if(entry[1] !== undefined && entry[1] !== null)
       template.actions.push(entry.map(v => toEscapeSeq(v)).join('='));
   }
-  if(actionsKey) template.desktop.push("Actions="+actions);
+  if (actionsCol.length > 0)
+    template.desktop.push(`Actions=${actionsCol.join(';')};`);
   return template.desktop.join('\n')+'\n'+template.actions.join('\n');
 }
 

@@ -38,7 +38,7 @@ import type { DebugLoggerFunction } from "util";
 
 const enum RemoteDefaults {
   /** Current URL to where runtimes are served. */
-  Mirror = 'https://github.com/AppImage/type2-runtime/releases/download/',
+  Mirror = "https://github.com/AppImage/type2-runtime/releases/download/",
   /** Currently supported release of runtime. */
   Tag = "continuous",
 }
