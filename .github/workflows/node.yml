@@ -20,9 +20,9 @@ jobs:
     steps:
       # Initialization
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
@@ -43,14 +43,16 @@ jobs:
             --test-reporter=junit --test-reporter-destination=junit.xml
       - name: Upload coverage reports to Codecov
         if:   ${{ success() }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
+          report_type: "coverage"
           token: ${{ secrets.CODECOV_TOKEN }}
           name: "${{ github.ref_name }}#${{ matrix.node-version }}"
       - name: Upload test results to CodeCov
         if:   ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
+        uses: codecov/codecov-action@v7
         with:
+          report_type: "test_results"
           token: ${{ secrets.CODECOV_TOKEN }}
           name: "${{ github.ref_name }}#${{ matrix.node-version }}"
   publish:
@@ -76,9 +78,9 @@ jobs:
     steps:
       # Initialization
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
       - name: Setup Node.js latest
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: latest
           registry-url: https://registry.npmjs.org
@@ -94,7 +96,7 @@ jobs:
             printf '\0\n'
           } >> "$GITHUB_OUTPUT"
       - name: Upload package as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reforged-${{ matrix.pkg }}
           path: ${{ fromJson(steps.pack.outputs.meta)[0].filename }}
