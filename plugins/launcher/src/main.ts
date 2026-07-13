@@ -21,12 +21,13 @@ export default class PluginLauncher extends PluginBase<PluginLauncherConfig> {
   override name = "launcher" as const;
   async #writeShell(path:string) {
     let { launcher } = this.config as typeof this.config;
-    if(typeof launcher !== "string" && !Array.isArray(launcher))
-      throw TypeError("For now, 'script' field is obligatory"+`, typeof script = ${typeof launcher}`, {cause: `script=${launcher}`});
+    // String arrays -> strings
     if(Array.isArray(launcher))
       launcher = launcher.join('\n');
+    // Files -> buffer
     if(typeof launcher === "string" && !launcher.startsWith("#!/"))
       launcher = await readFile(launcher);
+    // Buffer (or string) -> executable/script
     return writeFile(path,launcher,{mode: 0o755});
   }
   constructor(config: PluginLauncherConfig) {
