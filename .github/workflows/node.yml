@@ -29,6 +29,9 @@ jobs:
       # Build
       - name: Build project
         run:  npm run build
+      # Lint
+      - name: Lint project
+        run:  npm run lint
       # Test
       - name: Run tests with coverage+test reporting
         if:   ${{ matrix.node-version != '20.x' && matrix.node-version != '18.x' }}
