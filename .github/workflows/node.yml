@@ -12,6 +12,7 @@ permissions: {}
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
         node-version: [18.x, 20.x, 22.x, 24.x, latest]
     name:    Build and run tests (${{ github.ref_name }}#${{ matrix.node-version }})
