@@ -6,7 +6,8 @@
     "rootDir": "./",
     "declarationMap": false,
     "sourceMap": false,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "types": ["electron", "node"]
   },
   "files": [
     "src/index.ts",

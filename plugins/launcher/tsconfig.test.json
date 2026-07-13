@@ -3,7 +3,8 @@
   "compilerOptions": {
     "tsBuildInfoFile": "../../cache/tsc/maker-appimage.test.json",
     "rootDir": "./test",
-    "noEmit": true
+    "noEmit": true,
+    "types": ["node"]
   },
   "files": [
     "test/make.ts",
