@@ -55,13 +55,11 @@ export default class PluginLauncher extends PluginBase<PluginLauncherConfig> {
     super(config);
   }
   override getHooks(): ForgeMultiHookMap {
-    /** A reference to `this` object of current class scope. */
-    const self = this;
     /** A `package.json` configuration stored in class. */
     let json: PackageJSON;
     return {
       /** This hook will read parsed packageJson and pass it unchanged. */
-      async readPackageJson(forge,packageJson) {
+      readPackageJson: async (forge,packageJson) => {
         {/* Ensure plugin is always placed as last: we don't want to break
           others when replacing binary with shell script (fuses plugin?). */
           const { plugins } = forge;
@@ -74,7 +72,7 @@ export default class PluginLauncher extends PluginBase<PluginLauncherConfig> {
         return packageJson;
       },
       /** This hook wraps binary into a shell script. */
-      async postPackage(forge,pack) {
+      postPackage: async (forge,pack) => {
         const jobs = [];
         const { name, executableName } = forge.packagerConfig;
         for(const path of pack.outputPaths) if(pack.platform!=="win32" && pack.platform!=="darwin")
@@ -84,7 +82,7 @@ export default class PluginLauncher extends PluginBase<PluginLauncherConfig> {
               join(path, bin),
               join(path, bin+".bin")
             );
-            await self.#writeShell(join(path, bin));
+            await this.#writeShell(join(path, bin));
           })());
         await Promise.all(jobs);
       }

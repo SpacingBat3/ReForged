@@ -161,14 +161,14 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, async() => {
       }
       const cp = execFile(AppImage, ["--appimage-mount"])
       // Wait for mountpoint.
-      const mount = await new Promise<string>((resolve) => {
+      const mount = await new Promise<string>(ok => {
         let data = "";
         cp.stdout?.once("data", (chunk:string) => {
           data+=String(chunk);
-          if(data.includes("\n")) resolve(data.trimEnd())
+          if(data.includes("\n")) ok(data.trimEnd())
         })
-        cp.stdout?.once("end", () => resolve(data))
-        cp.stdout?.once("close",() => resolve(data));
+        cp.stdout?.once("end", () => ok(data))
+        cp.stdout?.once("close",() => ok(data));
       })
       // Do FS checks
       assert.ok(mount);
@@ -184,6 +184,7 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, async() => {
               link,
               `usr/share/icons/hicolor/scalable/apps/${packageJSON.name}.svg`
             );
+            return;
           }));
         }
         await Promise.all(promises);
@@ -221,20 +222,20 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, async() => {
 suites.push(describe("MakerAppImage fails for invalid cases", {skip}, () => {
   /** List of validation functions for error rejections. */
   const err = {
-    noExecutable: (err:Error|null|undefined) => {
-      assert.strictEqual(err?.constructor, Error);
-      assert.strictEqual(err?.name, "Error");
+    noExecutable: (error:Error|null|undefined) => {
+      assert.strictEqual(error?.constructor, Error);
+      assert.strictEqual(error?.name, "Error");
       assert.ok(String.prototype.startsWith.call(
-        err.message,
+        error.message,
         "Could not find executable"
       ));
       return true;
     },
-    unsupportedArch: (err:Error|null|undefined) => {
-      assert.strictEqual(err?.constructor, Error);
-      assert.strictEqual(err.name, "Error");
+    unsupportedArch: (error:Error|null|undefined) => {
+      assert.strictEqual(error?.constructor, Error);
+      assert.strictEqual(error.name, "Error");
       assert.strictEqual(
-        err.message,
+        error.message,
         "Unsupported architecture: 'wrong-arch'."
       )
       return true;
@@ -242,9 +243,9 @@ suites.push(describe("MakerAppImage fails for invalid cases", {skip}, () => {
   }
 
   it("rejects when configured binary name does not exist", async() => {
-    const maker = new MakerAppImage({options:{bin:"invalid"}});
-    await maker.prepareConfig(process.arch);
-    const failedAttempt = maker.make({
+    const badmaker = new MakerAppImage({options:{bin:"invalid"}});
+    await badmaker.prepareConfig(process.arch);
+    const failedAttempt = badmaker.make({
       packageJSON,
       forgeConfig,
       appName: packageJSON.productName,
@@ -267,7 +268,7 @@ suites.push(describe("MakerAppImage fails for invalid cases", {skip}, () => {
       targetPlatform: process.platform
     });
     await assert.rejects(failedAttempt, err.noExecutable);
-  }),
+  })
 
   it("rejects an error for invalid architectures", async() => {
     const failedAttempt = maker.make({

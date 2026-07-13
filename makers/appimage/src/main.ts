@@ -212,7 +212,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
     // Run `mksquashfs` and wait for it to finish
     const mkSquashFsArgs = [workDir, outFile];
     const mkSquashFsVer = getSquashFsVer();
-    switch(-1) {
+    switch(-1) /*oxlint-disable eslint/no-duplicate-case */ {
       // -noappend is supported since 1.2+
       case(mkSquashFsVer.compare("1.2.0")): break;
       //@ts-expect-error falls through
@@ -226,7 +226,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       case mkSquashFsVer.compare("4.4.0"): break;
       case -(process.env["SOURCE_DATE_EPOCH"] === undefined):
       mkSquashFsArgs.push("-all-time", "0", "-mkfs-time", "0");
-    }
+    } /*oxlint-enable eslint/no-duplicate-case */
     // Set compressor options if available
     switch(compressor) {
       case undefined: break;
@@ -239,20 +239,21 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       default: mkSquashFsArgs.push("-comp", compressor);
     }
     d("Queuing 'mksquashfs' task.")
-    await new Promise((resolve, reject) => {
+    await new Promise((ok, err) => {
       this.ensureFile(outFile).then(() => {
         const evtCh = mkSquashFs(...mkSquashFsArgs)
           .once("close", (code,_signal,msg) => code !== 0 ?
-            reject(new Error(`mksquashfs returned ${msg ? `'${msg}' in stderr` : "non-zero code"} (${code}).`)):
-            resolve(d("Crafted SquashFS image file."))
+            err(new Error(`mksquashfs returned ${msg ? `'${msg}' in stderr` : "non-zero code"} (${code}).`)):
+            ok(d("Crafted SquashFS image file."))
           )
-          .once("error", (error) => reject(error));
+          .once("error", (error) => err(error));
         for(let vndHead; vndHead !== undefined && vndHead !== "RF1"; vndHead=vendorExt.pop());
         const [vndCh] = vendorExt;
         // Leak current progress to API consumers if supported
         if(vndCh instanceof EventEmitter)
           evtCh.on("progress", percent => vndCh.emit("progress", percent));
-      }).catch(error => reject(error));
+        return;
+      }).catch(error => err(error));
     });
     d("Cleanup workDir & craft final AppImage.")
     await Promise.all([

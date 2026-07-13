@@ -212,9 +212,10 @@ export async function joinFiles(...filesAndBuffers:readonly(string|ArrayBufferLi
   const length = arr.reduce((p,c)=>p+c.length,0);
   const result = new Uint8Array(length);
   let preBuffLen = 0;
-  for(const buff of arr)
-    result.set(buff,preBuffLen),
+  for(const buff of arr) {
+    result.set(buff,preBuffLen);
     preBuffLen=buff.length;
+  }
   return result;
 }
 /**

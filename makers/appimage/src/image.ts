@@ -71,11 +71,12 @@ async function normalizeIcon(conf: MakerUnixOptions["icon"]): Promise<IconSet> {
       const dim = getFixedDims(conf);
       // Set default for non-present scalable
       if(!conf.default) {
-        const predicate = dim.sort((x,y) => (y[0]*y[1])-(x[0]*x[1]))[0]?.join('x') as `${number}x${number}`|undefined;
+        dim.sort((x,y) => (y[0]*y[1])-(x[0]*x[1]));
+        const predicate = dim[0]?.join('x') as `${number}x${number}`|undefined;
         if(predicate) conf.default = predicate;
       }
       // Additional (optional) validation step
-      if(conf.strict) for(const img of dim.map(dim => dim.join('x') as `${number}x${number}`))
+      if(conf.strict) for(const img of dim.map(self => self.join('x') as `${number}x${number}`))
         if(img in conf && conf[img]) {
           const meta = readFile(conf[img]).then(getImageMetadata)
           if(img !== `${(await meta).width}x${(await meta).height}`)
