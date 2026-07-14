@@ -1,6 +1,5 @@
 {
-  "name": "reforged",
-  "version": "0.0.0-undefined",
+  "name": "@reforged/monorepo",
   "description": "A set of Electron Forge tools, makers and publishers (project package).",
   "scripts": {
     "build": "tsc -b",
