@@ -1,5 +1,6 @@
 {
   "extends": "@reforged/tsconfig",
+  "composite": true,
   "compilerOptions": {
     "tsBuildInfoFile": "cache/tsc/base.json",
     "noEmit": true
