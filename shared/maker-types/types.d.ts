@@ -125,7 +125,13 @@ interface MakerUnixOptions extends MakerOptions {
   /**
    * Additional keywords that improve application searchability.
    */
-  keywords?: string[]
+  keywords?: string[];
+  /**
+   * Desktop file name.
+   * 
+   * @defaultValue `packageJson.desktopName || options.productName`
+   */
+  desktopName?: string;
 }
 
 interface FreeDesktopAction {
