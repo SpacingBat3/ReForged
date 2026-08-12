@@ -15,6 +15,7 @@ interface PackageJSON extends Record<string,unknown> {
   name?: string;
   version: string;
   productName?: string;
+  desktopName?: string;
 }
 
 type ReadonlyAll<T> = T extends object ? { readonly [P in keyof T]: ReadonlyAll<T[P]> } : T;

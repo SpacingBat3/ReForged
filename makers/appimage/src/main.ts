@@ -1,7 +1,7 @@
 (process as {setSourceMapsEnabled?:(arg0:boolean)=>void}).setSourceMapsEnabled?.(true);
 
 import { tmpdir } from "os";
-import { resolve, relative } from "path";
+import { resolve, relative, basename } from "path";
 import {
   existsSync,
   rmSync
@@ -97,8 +97,8 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       actions, categories, compressor, genericName, icon, mimeType, keywords
     } = (this.config.options ?? {});
     let {
-      name, bin, productName, runtime
-    } = (this.config.options ?? {})
+      name, bin, productName, runtime, desktopName
+    } = (this.config.options ?? {});
     // FIXME: https://github.com/tc39/proposal-throw-expressions would be nice
     //        here when decision to add it to standard will be made.
     const appImageArch = mapArch[targetArch]??(()=>{throw new Error(`Unsupported architecture: '${targetArch}'.`)})();
@@ -106,6 +106,9 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
     name ??= sanitizeName(this.config.options?.name ?? packageJSON.name as string);
     bin  ??= name;
     productName ??= appName;
+    desktopName = (desktopName ??= packageJSON.desktopName)
+      ? basename(desktopName, ".desktop") + ".desktop"
+      : productName + ".desktop";
     runtime ??= `${RemoteDefaults.Mirror}${RemoteDefaults.Tag}/runtime-${appImageArch}`;
     /** Resolved path to AppImage output file. */
     const outFile = resolve(makeDir, this.name, targetArch, `${productName}-${packageJSON.version}-${targetArch}.AppImage`);
@@ -174,27 +177,35 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       lib: resolve(workDir, 'usr/lib/'),
       data: resolve(workDir, 'usr/lib/', name),
       bin: resolve(workDir, 'usr/bin'),
-      icons: resolve(workDir, 'usr/share/icons/hicolor')
+      icons: resolve(workDir, 'usr/share/icons/hicolor'),
+      desktop: resolve(workDir, 'usr/share/applications')
     }
     const binPath = resolve(directories.bin,bin);
     d("Queuing asynchronous jobs batches.")
     const jobs = [
       // Create further directory tree (0,1,2)
-      mkdir(directories.lib, {recursive: true, mode: 0o755}),
-      mkdir(directories.bin, {recursive: true, mode: 0o755}),
-      // Save `.desktop` to file (3)
-      sources.desktop
-        .then(data => writeFile(
-          resolve(workDir, productName+'.desktop'), data, {mode:0o755, encoding: "utf-8"})
-        ).then(() => d("Wrote '.desktop' file to 'workDir'.")),
-      // Create `AppRun` as a link to bin/ (4)
+      mkdir(directories.lib, { recursive: true, mode: 0o755 }),
+      mkdir(directories.bin, { recursive: true, mode: 0o755 }),
+      mkdir(directories.desktop, { recursive: true, mode: 0o755 }),
+      // Create `AppRun` as a link to bin/ (3)
       symlink(relative(workDir,binPath),resolve(workDir,'AppRun'),"file"),
-      // Populate icons
+      // Populate icons (4)
       storeIcons(icon,directories.icons,workDir,name),
-      // Ensure that root folder has proper file mode
+      // Ensure that root folder has proper file mode (5)
       chmod(workDir, 0o755)
     ] as [Promise<unknown>,Promise<unknown>,...Promise<unknown>[]];
     jobs.push(
+      // Save `.desktop` to file
+      Promise.all([sources.desktop, jobs[2]])
+        .then(([data]) => {
+          const xdgOut = resolve(directories.desktop, desktopName);
+          return Promise.all([
+            writeFile(xdgOut, data, { mode: 0o755, encoding: "utf-8" })
+              .then(() => d("Wrote '.desktop' file to 'directories.desktop'.")),
+            symlink(relative(workDir, xdgOut), resolve(workDir,desktopName), "file")
+              .then(() => d("Made symlink to '.desktop' file in 'workdir'."))
+          ]);
+        }),
       // Create a symlink in usr/bin
       jobs[1]
         .then(() => symlink(
