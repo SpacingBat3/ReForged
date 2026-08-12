@@ -38,7 +38,7 @@ interface IconSet {
    * verification, to ensure there are no differences between real and
    * configuration icon dimensions.
    *
-   * Default is `false`.
+   * @defaultValue `false`
    */
   strict?: boolean;
   /**
@@ -66,20 +66,20 @@ interface MakerOptions {
    * Name of the package (lowercase & hypens only). Makers sanitize this value
    * with a chance of encountering a failure for unsanitizable strings.
    *
-   * Defaults to sanitized `packageJSON.name`.
+   * @defaultValue sanitized `packageJSON.name`
    */
   name?: string;
   /**
    * Human-friendly name of the application.
    *
-   * Defaults to `packageJSON.productName`.
+   * @defaultValue `packageJSON.productName`
    */
   productName?: string;
   /**
    * Name of the executable to put into the `Exec` field of generated
    * `.desktop` file.
    *
-   * Defaults to `options.name`.
+   * @defaultValue `options.name`
    */
   bin?: string;
   /**
