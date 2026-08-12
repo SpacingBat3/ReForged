@@ -13,7 +13,7 @@ interface MakerAppImageConfigOptions extends MakerUnixOptions {
     /**
      * Use given compressor for SquashFS filesystem.
      *
-     * Defaults to `mksquashfs` binary defaults (usually `gzip`).
+     * @defaultValue `mksquashfs` binary defaults (usually `"gzip"`)
      *
      * @since v2.1.0
      */
@@ -22,7 +22,7 @@ interface MakerAppImageConfigOptions extends MakerUnixOptions {
      * A file location, from which runtime should be fetched. Can be remote URL
      * that is supported by Node.js `fetch` or file path.
      *
-     * Default is generated as:
+     * @defaultValue generated as:
      * ```js
      * `https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-${arch}`
      * ```
