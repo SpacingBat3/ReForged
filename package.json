@@ -42,7 +42,8 @@
     "npm": ">=7.0.0"
   },
   "overrides": {
-    "@electron/rebuild": "^4.0.0"
+    "@electron/rebuild": "^4.0.0",
+    "extract-zip": "npm:@electron-internal/extract-zip@latest"
   },
   "license": "(ISC AND UNLICENSE)"
 }
