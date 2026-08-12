@@ -106,6 +106,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
     name ??= sanitizeName(this.config.options?.name ?? packageJSON.name as string);
     bin  ??= name;
     productName ??= appName;
+    // oxlint-disable-next-line eslint/no-cond-assign
     desktopName = (desktopName ??= packageJSON.desktopName)
       ? basename(desktopName, ".desktop") + ".desktop"
       : productName + ".desktop";
