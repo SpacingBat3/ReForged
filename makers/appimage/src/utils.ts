@@ -11,7 +11,17 @@ import type { SemVer } from "semver"
 type AppImageArch = "x86_64"|"aarch64"|"armhf"|"i686";
 export type ForgeArch = "x64" | "arm64" | "armv7l" | "ia32" | "mips64el" | "universal";
 
-export interface MakerMeta extends MakerOptions {
+interface PackageJSON extends Record<string,unknown> {
+  name?: string;
+  version: string;
+  productName?: string;
+}
+
+type ReadonlyAll<T> = T extends object ? { readonly [P in keyof T]: ReadonlyAll<T[P]> } : T;
+type MixedMut<T> = T & ReadonlyAll<T>;
+
+export interface MakerMeta extends MixedMut<MakerOptions> {
+  packageJSON: PackageJSON;
   targetArch: ForgeArch;
 }
 
