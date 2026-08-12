@@ -16,7 +16,8 @@
   },
   "rules": {
     "unicorn/no-array-sort": ["warn", { "allowAfterSpread": true }],
-    "no-shadow": ["warn", {"allow": ["ctx"]}]
+    "no-shadow": ["warn", {"allow": ["ctx"]}],
+    "no-cond-assign": ["warn", "except-parens"]
   },
   "env": {
     "es2022": true,
