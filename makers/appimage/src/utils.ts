@@ -1,6 +1,8 @@
 import EventEmitter from "events";
 import { existsSync } from "fs";
-import { readFile } from "fs/promises";
+import { mkdtemp, readFile, rm } from "fs/promises";
+import { resolve } from "path";
+import { tmpdir } from "os";
 import { execFileSync, execFile } from "child_process";
 
 import { coerce } from "semver";
@@ -24,6 +26,53 @@ type MixedMut<T> = T & ReadonlyAll<T>;
 export interface MakerMeta extends MixedMut<MakerOptions> {
   packageJSON: PackageJSON;
   targetArch: ForgeArch;
+}
+
+/**
+ * Disposable temp dir. Basically `mkdtempDisposable`
+ * but also usable in some older Node.js runtime.
+ *
+ * This will be replaced with `mkdtempDisposable` when
+ * it stabilizes over few legacy Node.js releases.
+ */
+export class AsyncTempDir {
+  static readonly #factory: unique symbol = Symbol();
+  #pathPromise: Promise<string>;
+  #path!: string;
+  #removed = false;
+
+  /** Gets synchronous path. */
+  get path() {
+    return this.#path;
+  }
+
+  /** Dispose the temporary path. */
+  async remove() {
+    if(!this.#removed)
+      await rm(await this.#pathPromise, { recursive: true });
+    return (this.#removed=true);
+  }
+
+  /**
+   * Asynchronous constructor that guarantees proper value initialization.
+   *
+   * @param name Named prefix for temporary directory
+   */
+  static async withStablePrefix(name: string) {
+    const obj = new AsyncTempDir(AsyncTempDir.#factory, name);
+    obj.#path = await obj.#pathPromise;
+    return obj;
+  }
+
+  /** Private constructor, available only to factories. */
+  constructor(sym: symbol, name: string) {
+    if (sym !== AsyncTempDir.#factory)
+      throw Error("This contructor is private");
+    this.#pathPromise = mkdtemp(resolve(tmpdir(),name));
+  }
+  async [Symbol.asyncDispose]() {
+    await this.remove();
+  }
 }
 
 /** Function argument definitions for {@linkcode mkSqFsEvt}. */

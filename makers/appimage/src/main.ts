@@ -1,19 +1,15 @@
 (process as {setSourceMapsEnabled?:(arg0:boolean)=>void}).setSourceMapsEnabled?.(true);
 
-import { tmpdir } from "os";
 import { resolve, relative, basename } from "path";
 import {
   existsSync,
-  rmSync
 } from "fs";
 import {
   mkdir,
-  mkdtemp,
   writeFile,
   readFile,
   chmod,
   symlink,
-  rm,
   cp
 } from "fs/promises";
 import { EventEmitter } from "events";
@@ -27,7 +23,8 @@ import {
   joinFiles,
   mkSquashFs,
   mapArch,
-  getSquashFsVer
+  getSquashFsVer,
+  AsyncTempDir
 } from "./utils.js"
 
 import storeIcons from "./image.js"
@@ -159,27 +156,14 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         "in Forge config are pointing to valid file."
       ].join(" "));
     /** A temporary directory used for the packaging. */
-    const workDir = await mkdtemp(resolve(tmpdir(), `.${productName}-${packageJSON.version}-${targetArch}-`));
-    d("Setup cleanup hooks for error scenarios.")
-    const [cleanupHook, cleanupSyncHook] = (() => {
-      let cleanup = <T extends typeof rm|typeof rmSync>(rmMethod:T):ReturnType<T>|Promise<void> => {
-        cleanup = async () => void 0;
-        return rmMethod(workDir, {recursive: true}) as ReturnType<T>;
-      }
-      return [
-        () => cleanup(rm),
-        () => cleanup(rmSync)
-      ] as const;
-    })();
-    process.once("uncaughtExceptionMonitor", cleanupHook);
-    process.once("exit", cleanupSyncHook);
-    process.once("SIGINT", () => {throw new Error("User interrupted the process.")});
+    await using work = await AsyncTempDir
+      .withStablePrefix(`.${productName}-${packageJSON.version}-${targetArch}-`);
     const directories = {
-      lib: resolve(workDir, 'usr/lib/'),
-      data: resolve(workDir, 'usr/lib/', name),
-      bin: resolve(workDir, 'usr/bin'),
-      icons: resolve(workDir, 'usr/share/icons/hicolor'),
-      desktop: resolve(workDir, 'usr/share/applications')
+      lib: resolve(work.path, 'usr/lib/'),
+      data: resolve(work.path, 'usr/lib/', name),
+      bin: resolve(work.path, 'usr/bin'),
+      icons: resolve(work.path, 'usr/share/icons/hicolor'),
+      desktop: resolve(work.path, 'usr/share/applications')
     }
     const binPath = resolve(directories.bin,bin);
     d("Queuing asynchronous jobs batches.")
@@ -189,11 +173,11 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
       mkdir(directories.bin, { recursive: true, mode: 0o755 }),
       mkdir(directories.desktop, { recursive: true, mode: 0o755 }),
       // Create `AppRun` as a link to bin/ (3)
-      symlink(relative(workDir,binPath),resolve(workDir,'AppRun'),"file"),
+      symlink(relative(work.path,binPath),resolve(work.path,'AppRun'),"file"),
       // Populate icons (4)
-      storeIcons(icon,directories.icons,workDir,name),
+      storeIcons(icon,directories.icons, work.path,name),
       // Ensure that root folder has proper file mode (5)
-      chmod(workDir, 0o755)
+      chmod(work.path, 0o755)
     ] as [Promise<unknown>,Promise<unknown>,...Promise<unknown>[]];
     jobs.push(
       // Save `.desktop` to file
@@ -203,7 +187,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
           return Promise.all([
             writeFile(xdgOut, data, { mode: 0o755, encoding: "utf-8" })
               .then(() => d("Wrote '.desktop' file to 'directories.desktop'.")),
-            symlink(relative(workDir, xdgOut), resolve(workDir,desktopName), "file")
+            symlink(relative(work.path, xdgOut), resolve(work.path,desktopName), "file")
               .then(() => d("Made symlink to '.desktop' file in 'workdir'."))
           ]);
         }),
@@ -222,7 +206,7 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
     await(Promise.all(jobs));
     d("Preparing 'mksquashfs' arguments for data image generation.")
     // Run `mksquashfs` and wait for it to finish
-    const mkSquashFsArgs = [workDir, outFile];
+    const mkSquashFsArgs = [work.path, outFile];
     const mkSquashFsVer = getSquashFsVer();
     switch(-1) /*oxlint-disable eslint/no-duplicate-case */ {
       // -noappend is supported since 1.2+
@@ -267,14 +251,8 @@ export default class MakerAppImage extends MakerBase<MakerAppImageConfig> {
         return;
       }).catch(error => err(error));
     });
-    d("Cleanup workDir & craft final AppImage.")
-    await Promise.all([
-      cleanupHook()
-        .then(() => void process
-          .off("uncaughtExceptionMonitor",cleanupHook)
-          .off("exit", cleanupSyncHook) as void),
-      writeFile(outFile,await joinFiles(await sources.runtime,outFile))
-    ]);
+    d("Craft final AppImage.")
+    await writeFile(outFile,await joinFiles(await sources.runtime,outFile))
     chmod(outFile,0o755);
     d("Done everything, returning results.");
     // Finally, return paths to maker artifacts
