@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
+//
+// SPDX-License-Identifier: ISC
+
 import {footnote} from "@mdit/plugin-footnote"
 import {tasklist} from "@mdit/plugin-tasklist";
 import typedoc from "typedoc/package.json" with { type: "json" }

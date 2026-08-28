@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
+//
+// SPDX-License-Identifier: ISC
+
 import EventEmitter from "events";
 import { existsSync } from "fs";
 import { mkdtemp, readFile, rm } from "fs/promises";

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
+//
+// SPDX-License-Identifier: ISC
+
 import { PluginBase } from "@electron-forge/plugin-base";
 import type PluginLauncherConfig from "../types/config.d.ts";
 import type { ForgeMultiHookMap } from "@electron-forge/shared-types";

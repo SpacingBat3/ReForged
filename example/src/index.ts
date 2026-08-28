@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: NONE
+//
+// SPDX-License-Identifier: Unlicense
+
 import Electron = require('electron');
 import path = require('node:path');
 

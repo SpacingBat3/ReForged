@@ -1,6 +1,6 @@
 ISC License
 
-Copyright (C) 2025 Dawid Papiewski "SpacingBat3"
+Copyright (C) 2025-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice

@@ -45,5 +45,5 @@
     "@electron/rebuild": "^4.0.0",
     "extract-zip": "npm:@electron-internal/extract-zip@latest"
   },
-  "license": "(ISC AND UNLICENSE)"
+  "license": "(ISC AND Unlicense)"
 }

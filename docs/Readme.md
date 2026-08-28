@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2022-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
+
+SPDX-License-Identifier: ISC
+-->
+
 <div align="right">
 
 [![CodeCov](https://codecov.io/gh/SpacingBat3/ReForged/graph/badge.svg?token=83BCHPFQHS)](https://codecov.io/gh/SpacingBat3/ReForged)

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
+//
+// SPDX-License-Identifier: ISC
+
 import {MakerConfig, MakerUnixOptions} from "@reforged/maker-types"
 
 interface MakerAppImageConfigOptions extends MakerUnixOptions {
