@@ -45,12 +45,15 @@ project are:
 
 ## License
 
-For information on which software licenses may the ReForged project be
-distributed, see [`COPYING`](../COPYING) file.
+This project follows [REUSE] specification to match copyrighted material
+to software licenses and copyright. You might see overall list of
+licenses used in this project in [`LICENSES/`] folder.
 
 [^1]: Partially implemented; no official Forge API for representation yet.
 
-[AppImage]: https://appimage.org
-[forge]:    https://github.com/electron/forge
-[maker1]:   https://www.npmjs.com/package/@reforged/maker-appimage
-[plugin1]:  https://www.npmjs.com/package/@reforged/plugin-launcher
+[AppImage]:    https://appimage.org
+[forge]:       https://github.com/electron/forge
+[maker1]:      https://www.npmjs.com/package/@reforged/maker-appimage
+[plugin1]:     https://www.npmjs.com/package/@reforged/plugin-launcher
+[REUSE]:       https://reuse.software/
+[`LICENSES/`]: ../LICENSES/
