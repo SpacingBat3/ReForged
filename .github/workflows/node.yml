@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: ISC
 
+# $schema: https://json.schemastore.org/github-workflow
+
 name: Node.js CI/CD
 
 on:

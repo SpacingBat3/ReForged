@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: ISC
 
 {
+  "$schema": "https://www.schemastore.org/tsconfig.json",
   "extends": "@reforged/tsconfig",
   "compilerOptions": {
     "tsBuildInfoFile": "../../cache/tsc/maker-appimage.test.json",

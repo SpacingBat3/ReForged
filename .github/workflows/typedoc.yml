@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: ISC
 
+# $schema: https://json.schemastore.org/github-workflow
+
 # Simple workflow for deploying TypeDoc to GitHub Pages
 name: Deploy TypeDoc to Pages
 

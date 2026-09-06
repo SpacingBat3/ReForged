@@ -3,6 +3,7 @@
 //
 // SPDX-License-Identifier: Unlicense
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "@reforged/tsconfig",
   "compilerOptions": {
     "module": "Node16",
