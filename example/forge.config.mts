@@ -4,8 +4,8 @@
 // SPDX-License-Identifier: Unlicense
 
 import type { ForgeConfig } from "@electron-forge/shared-types";
-import MakerAppImage from "@reforged/maker-appimage";
-import PluginLauncher from "@reforged/plugin-launcher";
+import { MakerAppImage } from "@reforged/maker-appimage";
+import { PluginLauncher } from "@reforged/plugin-launcher";
 
 export default {
   packagerConfig: { executableName: "reforged-example-app" as const },

@@ -11,7 +11,7 @@
 import { describe, it } from "node:test";
 
 import assert from "node:assert";
-import MakerAppImage from "@reforged/maker-appimage";
+import { MakerAppImage } from "@reforged/maker-appimage";
 
 describe("MakerAppImage has valid structure", () => {
   const maker = new MakerAppImage();

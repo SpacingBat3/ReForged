@@ -38,7 +38,7 @@ import { tmpdir } from "node:os";
 
 
 import assert from "node:assert";
-import MakerAppImage from "@reforged/maker-appimage";
+import { MakerAppImage } from "@reforged/maker-appimage";
 
 import type { ForgeArch } from "@reforged/maker-appimage";
 import type { IconSet   } from "@reforged/maker-types";
@@ -142,7 +142,7 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, async() => {
       const exec = promisify(execFile);
       const AppImage = await AppImageDir
       // Skip this test for non-exec tmpdir.
-      if(await access(AppImage,constants.X_OK).then(_=>false,_=>true)) {
+      if(await access(AppImage,constants.X_OK).then(()=>false,()=>true)) {
         await chmod(AppImage,0o755);
         return access(AppImage,constants.X_OK).then(
           ()=>Promise.reject("Maker failed to set exec permissions"),
@@ -156,7 +156,7 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, async() => {
     tests.push(ctx.test("that contains valid icon hierarchy", async ctx => {
       const AppImage = await AppImageDir
       // Skip this test for non-exec tmpdir (due to appimage mounting).
-      if(await access(AppImage,constants.X_OK).then(_=>false,_=>true)) {
+      if(await access(AppImage,constants.X_OK).then(()=>false,()=>true)) {
         await chmod(AppImage,0o755);
         return access(AppImage,constants.X_OK).then(
           ()=>Promise.reject("Maker failed to set exec permissions"),
