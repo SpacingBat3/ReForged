@@ -273,7 +273,4 @@ export type {
   MakerAppImageConfigOptions
 } from "../types/config.d.ts";
 
-export type {
-  ForgeArch,
-  MakerMeta
-} from "./utils.js";
+export type { MakerMeta } from "./utils.js";

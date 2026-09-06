@@ -35,13 +35,14 @@ import { resolve } from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { tmpdir } from "node:os";
-
-
 import assert from "node:assert";
-import { MakerAppImage } from "@reforged/maker-appimage";
 
-import type { ForgeArch } from "@reforged/maker-appimage";
+import { MakerAppImage } from "@reforged/maker-appimage";
 import type { IconSet   } from "@reforged/maker-types";
+import type { MakerOptions } from "@electron-forge/maker-base";
+
+type ForgeArch = MakerOptions["targetArch"];
+type ForgePlatform = MakerOptions["targetPlatform"];
 
 const icon: IconSet = {};
 
@@ -55,7 +56,7 @@ for(const str of icons)
 
 /** Maker to test. */
 const maker = new MakerAppImage({ options: { icon } });
-await maker.prepareConfig(process.arch);
+await maker.prepareConfig(process.arch as ForgeArch);
 
 // Mock app metadata
 const
@@ -114,7 +115,7 @@ suites.push(describe("MakerAppimage is working correctly", {skip}, async() => {
       dir: await mockAppPath,
       makeDir: await mockMkPath,
       targetArch: process.arch as ForgeArch,
-      targetPlatform: process.platform
+      targetPlatform: process.platform as ForgePlatform
     }).then(([path]) => path);
     await assert.doesNotReject(AppImageDir);
     assert.strictEqual(
@@ -248,7 +249,7 @@ suites.push(describe("MakerAppImage fails for invalid cases", {skip}, () => {
 
   it("rejects when configured binary name does not exist", async() => {
     const badmaker = new MakerAppImage({options:{bin:"invalid"}});
-    await badmaker.prepareConfig(process.arch);
+    await badmaker.prepareConfig(process.arch as ForgeArch);
     const failedAttempt = badmaker.make({
       packageJSON,
       forgeConfig,
@@ -256,7 +257,7 @@ suites.push(describe("MakerAppImage fails for invalid cases", {skip}, () => {
       dir: await mockAppPath,
       makeDir: await mockMkPath,
       targetArch: process.arch as ForgeArch,
-      targetPlatform: process.platform
+      targetPlatform: process.platform as ForgePlatform
     });
     await assert.rejects(failedAttempt, err.noExecutable);
   })
@@ -269,7 +270,7 @@ suites.push(describe("MakerAppImage fails for invalid cases", {skip}, () => {
       dir: resolve("/","invalid"),
       makeDir: await mockMkPath,
       targetArch: process.arch as ForgeArch,
-      targetPlatform: process.platform
+      targetPlatform: process.platform as ForgePlatform
     });
     await assert.rejects(failedAttempt, err.noExecutable);
   })
@@ -282,7 +283,7 @@ suites.push(describe("MakerAppImage fails for invalid cases", {skip}, () => {
       dir: await mockAppPath,
       makeDir: await mockMkPath,
       targetArch: "wrong-arch" as ForgeArch,
-      targetPlatform: process.platform
+      targetPlatform: process.platform as ForgePlatform
     });
     await assert.rejects(failedAttempt, err.unsupportedArch);
   })

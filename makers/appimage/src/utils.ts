@@ -15,7 +15,6 @@ import type { MakerOptions } from "@electron-forge/maker-base"
 import type { SemVer } from "semver"
 
 type AppImageArch = "x86_64"|"aarch64"|"armhf"|"i686";
-export type ForgeArch = "x64" | "arm64" | "armv7l" | "ia32" | "mips64el" | "universal";
 
 interface PackageJSON extends Record<string,unknown> {
   name?: string;
@@ -29,7 +28,6 @@ type MixedMut<T> = T & ReadonlyAll<T>;
 
 export interface MakerMeta extends MixedMut<MakerOptions> {
   packageJSON: PackageJSON;
-  targetArch: ForgeArch;
 }
 
 /**
@@ -285,7 +283,7 @@ export async function joinFiles(...filesAndBuffers:readonly(string|ArrayBufferLi
 /**
  * Maps Node.js architecture to the AppImage-friendly format.
  */
-export const mapArch:Readonly<Partial<Record<ForgeArch,AppImageArch>>> = Object.freeze({
+export const mapArch:Readonly<Partial<Record<MakerMeta["targetArch"],AppImageArch>>> = Object.freeze({
   x64:    "x86_64",
   ia32:   "i686",
   arm64:  "aarch64",
