@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
+//
+// SPDX-License-Identifier: ISC
+
 (process as {setSourceMapsEnabled?:(arg0:boolean)=>void}).setSourceMapsEnabled?.(true);
 
 import { resolve, relative, basename } from "path";

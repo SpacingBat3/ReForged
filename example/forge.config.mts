@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: NONE
+// SPDX-FileContributor: SpacingBat3 <spacingbat3@gmail.com>
+//
+// SPDX-License-Identifier: Unlicense
+
 import type { ForgeConfig } from "@electron-forge/shared-types";
 import MakerAppImage from "@reforged/maker-appimage";
 import PluginLauncher from "@reforged/plugin-launcher";

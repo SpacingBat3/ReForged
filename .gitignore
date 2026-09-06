@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
+#
+# SPDX-License-Identifier: ISC
+
 # Ignore modules downloaded by package manager
 node_modules/
 # Ignore generated files
@@ -10,6 +14,7 @@ cache/
 # Ignore lockfiles other than NPM ones
 *lock*
 !package-lock.json
+!package-lock.json.license
 # Ignore local packages
 *.tgz
 # Ignore typedoc files

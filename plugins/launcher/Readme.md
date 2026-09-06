@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
+
+SPDX-License-Identifier: ISC
+-->
+
 # `@reforged/plugin-launcher`
 
 An [Electron Forge][1] plugin to wrap [Electron][2] applications into

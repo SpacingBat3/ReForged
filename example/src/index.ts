@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: NONE
+// SPDX-FileContributor: SpacingBat3 <spacingbat3@gmail.com>
+//
+// SPDX-License-Identifier: Unlicense
+
 import Electron = require('electron');
 import path = require('node:path');
 

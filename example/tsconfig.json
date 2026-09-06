@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: NONE
+// SPDX-FileContributor: SpacingBat3 <spacingbat3@gmail.com>
+//
+// SPDX-License-Identifier: Unlicense
 {
   "extends": "@reforged/tsconfig",
   "compilerOptions": {

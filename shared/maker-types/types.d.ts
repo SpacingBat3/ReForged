@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
+//
+// SPDX-License-Identifier: ISC
+
 import { FreeDesktopCategories, OfficialMimeTypes } from "./db.d.ts";
 
 /** Type representing one of official MIME groups. */

@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2025-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
+
+SPDX-License-Identifier: ISC
+-->
+
 # `@reforged/tsconfig`
 
 A TypeScript Compiler configuration, used as part of ReForged project.

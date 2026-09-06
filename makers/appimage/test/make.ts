@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
+//
+// SPDX-License-Identifier: ISC
+
 /*
  * Test current maker from perspective of 'make' process.
  * ---

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
+//
+// SPDX-License-Identifier: ISC
+
 import type {IconSet, MakerUnixOptions} from "@reforged/maker-types"
 import { copyFile, mkdir, readFile, symlink } from "node:fs/promises";
 import { extname, join, relative } from "node:path";
