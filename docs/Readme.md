@@ -14,34 +14,67 @@ SPDX-License-Identifier: ISC
 
 # ReForged
 
-A set of [Electron Forge][forge] tools, makers and publishers.
+Asynchronous toolkit targetting [Electron Forge][forge] API and from-scratch approach
+for packaging.
 
 </div>
 
-## Status
+## About
 
-Currently, this project is still very immature and some details are undecided
-yet about this project. The currently planned and implemented parts of this
-project are:
+ReForged is a project that tries to design its toolkit system for Electron
+software packaging on top [Electron Forge][forge], while in contrast to
+[Forge][forge], focusing on software packaging implementations done from
+scratch. It is structured as NPM module-based monorepo, like [Forge][forge]
+itself is.
 
-- [X] [`@reforged/maker-appimage`][maker1] – a simple, asynchronous [AppImage]
-  maker. Basically reimplementation of `appimagetool` in TypeScript, but using
-  system-wide `mksquashfs` and written natively for Forge API. Has potential for
-  packaging AppImage-alternative formats as well (right now, custom runtimes
-  are supported only).
+This approach has quite a few advantages: it allows a bit more centralised
+development of packaging that is free of upstream issues, which was a bit of
+hussle for [Forge][forge] in the past, as many of the issues were actually
+problems with dependant packages that Forge utilises and/or wraps.
+Additionally, since it is a non-wrapper approach, it allows anyone involved
+in development to understand the whole process for a given tool and to
+centralise the code for it under the same organizational unit, which speeds
+up the code research and bug fixing drastically. There are also some minor
+benefits, like platform and architecture independent behavior (due to
+majority of logic being implemented in TypeScript), as long as required
+toolset can be provided.
 
-  - [X] Emit / show current task and its progress [^1].
-  - [ ] Support passing and generating update information to AppImages (`zsync`).
-  - [ ] Support checksum embedding into AppImage runtime.
-  - [ ] Support AppImage signing (`gpg`).
+At the same time, you might see a major flaw of this approach: as
+reimplementation, it might not always follow the packaging standards up to
+date, or offer full feature set. For commercial-grade software that depends
+on estabilished solutions, you might preffer chosing [Forge][forge] approach
+and tooling.
 
-- [X] [`@reforged/plugin-launcher`][plugin1] - adds executable to the app
-  directory to be launched instead of binary, for additional features not yet
-  possible to be achieved within Electron app directly.
+## Components
 
-- [ ] `@reforged/maker-alpm` – maker for Arch Linux `pacman` packages. Ideally,
-  it should directly generate a tarball with necessary metadata while supporting
-  most features like package signing.
+### Public
+
+#### [![@reforged/maker-appimage][badge-maker-appimage]](https://www.npmjs.com/package/@reforged/maker-appimage)
+
+A direct implementation of [AppImage] packaging for [Forge][forge],
+doing entire packaging from scratch like `appimagetool`. It supports
+only the SquashFS packaged applications, although it might be considered
+to implement other backends as well in the future (feedback is welcome!).
+It should also be asynchronous and RAM-focused for storage and IO to offer
+competetive performance, while being TypeScript-written makes it platform
+independent solution (as long as platform support neccesary toolkits).
+
+
+#### [![@reforged/plugin-launcher][badge-plugin-launcher]](https://www.npmjs.com/package/@reforged/plugin-launcher)
+
+Allows you to define additional executable/script that runs before Electron.
+Currently limited to Linux and with unstable API (as defined by SemVer
+zero-versioning).
+
+### Development
+
+#### [![@reforged/maker-types][badge-maker-types]](https://www.npmjs.com/package/@reforged/maker-types)
+
+Provides common interfaces to standardise maker configuration properties
+across common platforms, allowing for contract promises to set up ReForged
+makers always the same way for the most part. You might also depend on this
+package if you want to implement your own makers and offer similar promises
+like ReForged does.
 
 ## License
 
@@ -51,9 +84,17 @@ licenses used in this project in [`LICENSES/`] folder.
 
 [^1]: Partially implemented; no official Forge API for representation yet.
 
+<!-- LINKS -->
 [AppImage]:    https://appimage.org
 [forge]:       https://github.com/electron/forge
 [maker1]:      https://www.npmjs.com/package/@reforged/maker-appimage
 [plugin1]:     https://www.npmjs.com/package/@reforged/plugin-launcher
 [REUSE]:       https://reuse.software/
+
+<!-- FILE REFS -->
 [`LICENSES/`]: ../LICENSES/
+
+<!-- BADGES -->
+[badge-maker-appimage]:  https://img.shields.io/npm/v/%40reforged%2Fmaker-appimage?style=for-the-badge&logo=npm&label=%40reforged%2Fmaker-appimage
+[badge-plugin-launcher]: https://img.shields.io/npm/v/%40reforged%2Fplugin-launcher?style=for-the-badge&logo=npm&label=%40reforged%2Fplugin-launcher
+[badge-maker-types]:     https://img.shields.io/npm/v/%40reforged%2Fmaker-types?style=for-the-badge&logo=npm&label=%40reforged%2Fmaker-types
