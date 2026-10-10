@@ -6,6 +6,7 @@ SPDX-License-Identifier: ISC
 
 <div align="right">
 
+[![REUSE status](https://api.reuse.software/badge/github.com/SpacingBat3/ReForged)](https://api.reuse.software/info/github.com/SpacingBat3/ReForged)
 [![CodeCov](https://codecov.io/gh/SpacingBat3/ReForged/graph/badge.svg?token=83BCHPFQHS)](https://codecov.io/gh/SpacingBat3/ReForged)
 
 </div><div align="center">
