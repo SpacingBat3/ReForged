@@ -20,7 +20,9 @@ jobs:
           args: spdx -o ReForged.spdx --creator-person "None" --creator-organization "None"
       - name: Add additional runner metadata to BOM
         run: |
-          sed -E "s/^(Creator: Tool: reuse-.*)/\1\nCreator: Tool: github_actions-${{github.action}}-${{runner.name}}/"
+          sed -E -i \
+            "s/^(Creator: Tool: reuse-.*)/\1\nCreator: Tool: github_actions-${{github.action}}-${{runner.name}}/" \
+            ReForged.spdx
       - name: Compress BOM
         run:  gzip -9 ReForged.spdx
       - name: Upload BOM as artifact
