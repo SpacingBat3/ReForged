@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2022-2026 Dawid Papiewski "SpacingBat3" <spacingbat3@gmail.com>
+#
+# SPDX-License-Identifier: ISC
+
+# $schema: https://json.schemastore.org/github-workflow
+
+name: REUSE compliance check
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check REUSE compliance
+        uses: fsfe/reuse-action@v6
+      - name: Generate an SPDX bill of materials
+        uses: fsfe/reuse-action@v6
+        with:
+          args: spdx -o ReForged.spdx --creator-person "None" --creator-organization "None"
+      - name: Add additional runner metadata to BOM
+        run: |
+          sed -E "s/^(Creator: Tool: reuse-.*)/\1\nCreator: Tool: github_actions-${{github.action}}-${{runner.name}}/"
+      - name: Compress BOM
+        run:  gzip -9 ReForged.spdx
+      - name: Upload BOM as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: ReForged.spdx.gz
