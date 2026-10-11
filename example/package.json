@@ -9,7 +9,8 @@
     "start": "tsc && electron-forge start",
     "package": "tsc && electron-forge package",
     "make": "tsc && electron-forge make",
-    "publish": "tsc && electron-forge publish",
+    "release": "tsc && electron-forge release",
+    "publish": "tsc && electron-forge release",
     "lint": "oxlint"
   },
   "author": "SpacingBat3 <git@spacingbat3.anonaddy.com> (https://github.com/SpacingBat3)",
