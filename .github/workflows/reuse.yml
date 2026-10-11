@@ -21,7 +21,7 @@ jobs:
       - name: Add additional runner metadata to BOM
         run: |
           sed -E -i \
-            "s/^(Creator: Tool: reuse-.*)/\1\nCreator: Tool: github_actions-${{github.action}}-${{runner.name}}/" \
+            "s/^(Creator: Tool: reuse-.*)/\1\nCreator: Tool: github_actions-${{github.action}} [${{runner.name}}]/" \
             ReForged.spdx
       - name: Compress BOM
         run:  gzip -9 ReForged.spdx
