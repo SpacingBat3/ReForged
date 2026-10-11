@@ -2,6 +2,19 @@
 //
 // SPDX-License-Identifier: ISC
 
+import { ForgeArch, ForgePlatform } from "@electron-forge/shared-types"
+
+/**
+ * A tuple/pair of {@link ForgePlatform} and {@link ForgeArch} to use
+ * for matching against.
+ */
+type PlatformOrArchSpecifier = |
+  `${ForgePlatform|"any"}-${ForgeArch}` | ForgePlatform | "any"
+
+type ExecutableOrScript = |
+  { path: string } | { script: string } |
+  readonly string[] |
+  NodeJS.ArrayBufferView     ;
 
 /** Configuration definition of `@reforged/plugin-launcher`. */
 export default interface PluginLauncherConfig {
@@ -12,17 +25,14 @@ export default interface PluginLauncherConfig {
    * - an inline shebang-prefixed script content (`string` or
    *   array of script lines, for convenience),
    *
-   * - an inline binary executable, doesn't have to be shebanged
-   *   but needs to be recognized by the kernel (binfmt on Linux for
-   *   non-native executables),
+   * - an inline executable, doesn't have to be shebanged but needs
+   *   to be recognized by the kernel (binfmt on Linux for non-native
+   *   executables, Windows might also recognize scripts without
+   *   shebang by extension),
    *
    * - a path to the external file that can be both of the above.
-   *
-   * @fixme This needs a syntax to separate platforms and architectures,
-   * especially for binary executables as these tend to be both platform
-   * and architecture agnostic.
    */
-  launcher: string|[`#!${string}`,...string[]]|NodeJS.ArrayBufferView
+  launcher: { [P in PlatformOrArchSpecifier] ?: ExecutableOrScript };
 }
 
-export { PluginLauncherConfig }
+export { PluginLauncherConfig, PlatformOrArchSpecifier }

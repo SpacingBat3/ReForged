@@ -44,12 +44,14 @@ const config = {
     /* (…) */
     plugins: [
         /* Note: PluginLauncher has to be the last element! */
-        new PluginLauncher({ launcher: [
-            '#!/bin/sh',
-            'ME="$(readlink -f "$0")"',
-            'echo "Hello, plugin world!"',
-            'exec "$ME.bin" "$@"'
-        ]})
+        new PluginLauncher({ launcher: {
+            "linux": [
+                '#!/bin/sh',
+                'ME="$(readlink -f "$0")"',
+                'echo "Hello, plugin world!"',
+                'exec "$ME.bin" "$@"'
+            ]
+        })
     ]
 }
 ```
