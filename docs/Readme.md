@@ -15,7 +15,7 @@ SPDX-License-Identifier: ISC
 
 # ReForged
 
-Asynchronous toolkit targetting [Electron Forge][forge] API and from-scratch approach
+Asynchronous toolkit targeting [Electron Forge][forge] API and from-scratch approach
 for packaging.
 
 </div>
@@ -30,7 +30,7 @@ itself is.
 
 This approach has quite a few advantages: it allows a bit more centralised
 development of packaging that is free of upstream issues, which was a bit of
-hussle for [Forge][forge] in the past, as many of the issues were actually
+hassle for [Forge][forge] in the past, as many of the issues were actually
 problems with dependant packages that Forge utilises and/or wraps.
 Additionally, since it is a non-wrapper approach, it allows anyone involved
 in development to understand the whole process for a given tool and to
@@ -57,8 +57,8 @@ doing entire packaging from scratch like `appimagetool`. It supports
 only the SquashFS packaged applications, although it might be considered
 to implement other backends as well in the future (feedback is welcome!).
 It should also be asynchronous and RAM-focused for storage and IO to offer
-competetive performance, while being TypeScript-written makes it platform
-independent solution (as long as platform support neccesary toolkits).
+competitive performance, while being TypeScript-written makes it platform
+independent solution (as long as such platforms support necessary toolkits).
 
 
 #### [![@reforged/plugin-launcher][badge-plugin-launcher]](https://www.npmjs.com/package/@reforged/plugin-launcher)
